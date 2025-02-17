@@ -22,6 +22,26 @@ kotlin {
     jvmToolchain(8)
 }
 
+val publishAll by tasks.registering {
+    listOf(
+        ":app",
+        ":instrument",
+        ":main",
+        ":minecraft"
+    ).forEach { project ->
+        dependsOn(project(project).tasks.named("publishExtension"))
+    }
+
+    listOf(
+        ":capability",
+        ":entrypoint",
+        ":app:app-api",
+        ":minecraft:minecraft-api",
+    ).forEach { project ->
+        dependsOn(project(project).tasks.named("publish"))
+    }
+}
+
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "dev.extframework.common")

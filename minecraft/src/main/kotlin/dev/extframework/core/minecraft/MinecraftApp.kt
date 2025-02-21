@@ -34,6 +34,7 @@ import dev.extframework.tooling.api.environment.extract
 import dev.extframework.tooling.api.environment.wrkDirAttrKey
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.nio.file.Path
 import java.util.*
 import java.util.jar.Manifest
@@ -106,7 +107,7 @@ public class MinecraftApp internal constructor(
 
         val remappedPath: Path =
             wrkDir.value resolve "remapped" resolve "minecraft" resolve destination.value.path resolve delegate.node.descriptor.version
-        val mappingsMarker = remappedPath resolve ".marker"
+        val mappingsMarker = remappedPath resolve ".marker-v2"
 
         if (source == destination.value) {
             gameJar = delegate.gameJar
@@ -195,12 +196,12 @@ public class MinecraftApp internal constructor(
             }
 
             mappingsMarker.make()
-            mappingsMarker.writeLines(remappedJars.map { "${it.second}:${it.first}" })
+            mappingsMarker.writeLines(remappedJars.map { "${it.second}${File.pathSeparator}${it.first}" })
 
             remappedJars.map { it.first }
         } else {
             mappingsMarker.readLines().map {
-                val (type, path) = it.split(":")
+                val (type, path) = it.split(File.pathSeparator)
                 val pathObj = Path(path)
 
                 if (type == "game") {

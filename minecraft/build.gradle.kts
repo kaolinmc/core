@@ -1,53 +1,60 @@
-import dev.extframework.gradle.common.archiveMapper
-import dev.extframework.gradle.common.archives
-import dev.extframework.gradle.common.boot
-import dev.extframework.gradle.common.commonUtil
+import dev.extframework.gradle.common.*
 import dev.extframework.gradle.common.dm.artifactResolver
 import dev.extframework.gradle.common.dm.jobs
-import dev.extframework.gradle.common.extLoader
-import dev.extframework.gradle.common.launcherMetaHandler
-import dev.extframework.gradle.common.mixin
-import dev.extframework.gradle.common.objectContainer
-import dev.extframework.gradle.common.toolingApi
-import util.basicExtensionInfo
+
+plugins {
+    id("dev.extframework")
+}
 
 group = "dev.extframework.core"
-version = "1.0.1-BETA"
+version = "1.0.3-BETA"
 
-dependencies {
-    implementation(project(":entrypoint"))
-    implementation(project(":main"))
-    implementation(project(":instrument"))
-    implementation(project("minecraft-api"))
-    implementation(project(":app:app-api"))
-    implementation(project(":app"))
-    toolingApi()
-    launcherMetaHandler()
-    boot()
-    jobs()
-    artifactResolver()
-    archives()
-    archiveMapper(transform = true, proguard = true)
-    commonUtil()
-    objectContainer()
-    testImplementation(kotlin("test"))
-    mixin()
-
-    extLoader(configurationName = "testImplementation")
+repositories {
+    mavenLocal()
 }
 
 kotlin {
     jvmToolchain(8)
+    explicitApi()
 }
 
-basicExtensionInfo(
-    "dev.extframework.core.minecraft.MinecraftTweaker",
-    "Minecraft extension",
-    "An extension adding support for Minecraft"
-) {
-    add(project(":main"))
-    add(project(":instrument"))
-    add(project(":app"))
+extension {
+    partitions {
+        tweaker {
+            tweakerClass = "dev.extframework.core.minecraft.MinecraftTweaker"
+            dependencies {
+                implementation(project(":app:app-api"))
+                implementation(project(":entrypoint"))
+                implementation(project("minecraft-api"))
+                launcherMetaHandler()
+                boot()
+                jobs()
+                artifactResolver()
+                archives()
+                archiveMapper(transform = true, proguard = true)
+                commonUtil()
+                objectContainer()
+                mixin(version = "1.0.2-SNAPSHOT")
+            }
+        }
+        gradle {
+            entrypointClass = "dev.extframework.minecraft.MinecraftGradleEntrypoint"
+            dependencies {
+                implementation(project("client:api"))
+                implementation(gradleApi())
+                boot()
+                jobs()
+                artifactResolver()
+                implementation("dev.extframework:gradle-api:1.0-BETA")
+                archives()
+                archiveMapper(transform = true, proguard = true)
+                commonUtil()
+                objectContainer()
+                mixin(version = "1.0.2-SNAPSHOT")
+                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
+            }
+        }
+    }
 }
 
 val listDependencies by tasks.registering(ListAllDependencies::class) {
@@ -58,4 +65,10 @@ tasks.test {
     useJUnitPlatform()
 
     dependsOn(listDependencies)
+}
+
+tasks.named<org.gradle.jvm.tasks.Jar>("gradleJar") {
+    from(project("client").tasks.named("jar")) {
+        rename { "client.jar" }
+    }
 }

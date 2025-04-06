@@ -13,12 +13,12 @@ repositories {
 }
 
 dependencies {
-    boot()
-    toolingApi()
+    boot(version = "3.6.2-SNAPSHOT")
+
     implementation(project(":instrument"))
     implementation(project(":app"))
     implementation(project(":app:app-api"))
-    extLoader()
+    extLoader(version = "2.1.17-SNAPSHOT")
     artifactResolver()
     objectContainer()
     implementation(project(":minecraft:minecraft-api"))
@@ -56,9 +56,11 @@ tasks.test {
 
     dependsOn(listDependencies)
 
-//    dependsOn(project(":minecraft:blackbox").tasks.named("publishToMavenLocal"))
-//    dependsOn(project(":minecraft").tasks.named("publishToMavenLocal"))
-//    dependsOn(project(":minecraft:minecraft-api").tasks.named("publishToMavenLocal"))
-//    dependsOn(project(":app:app-api").tasks.named("publishToMavenLocal"))
-//    dependsOn(project(":entrypoint").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":main").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":app").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":minecraft:blackbox").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":minecraft").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":minecraft:minecraft-api").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":app:app-api").tasks.named("publishToMavenLocal"))
+    dependsOn(project(":entrypoint").tasks.named("publishToMavenLocal"))
 }

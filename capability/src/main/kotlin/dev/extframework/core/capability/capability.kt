@@ -15,6 +15,10 @@ public interface Capability {
         public operator fun plusAssign(capability: T) {
             capabilities.register(this, capability)
         }
+
+        public fun cleanup() {
+            capabilities.unregister(this)
+        }
     }
 }
 

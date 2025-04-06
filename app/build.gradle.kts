@@ -1,28 +1,46 @@
-import dev.extframework.gradle.common.*
+import dev.extframework.gradle.common.archives
+import dev.extframework.gradle.common.boot
+import dev.extframework.gradle.common.commonUtil
 import dev.extframework.gradle.common.dm.artifactResolver
 import dev.extframework.gradle.common.dm.jobs
-import util.basicExtensionInfo
+import dev.extframework.gradle.common.extFramework
+import dev.extframework.gradle.common.objectContainer
+import dev.extframework.gradle.common.toolingApi
 
-version = "1.0-BETA"
+plugins {
+    id("dev.extframework")
+}
+
+version = "1.0.1-BETA"
 
 repositories {
     mavenCentral()
+    extFramework()
 }
 
-dependencies {
-    toolingApi()
-    implementation(project(":app:app-api"))
-    boot()
-    jobs()
-    artifactResolver()
-    archives()
-    commonUtil()
-    objectContainer()
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-}
+extension {
+    model {
+        attribute("unloadable", false)
+    }
+    partitions {
+        tweaker {
+            tweakerClass = "dev.extframework.core.app.AppTweaker"
+            dependencies {
+                toolingApi()
+                implementation(project("app-api"))
+                boot()
+                jobs()
+                artifactResolver()
+                archives()
+                commonUtil()
+                objectContainer()
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            }
+        }
+    }
 
-basicExtensionInfo(
-    "dev.extframework.core.app.AppTweaker",
-    "Application API",
-    "An API for targeting applications"
-)
+    metadata {
+        name = "Application API"
+        description = "An API for targeting applications"
+    }
+}

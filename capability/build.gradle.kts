@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.extframework.core"
-version = "1.0-BETA"
+version = "1.0.1-BETA"
 
 repositories {
     mavenCentral()

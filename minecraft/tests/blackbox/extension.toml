@@ -1,0 +1,4 @@
+[parents]
+minecraft = { group = "dev.extframework.core", version = "1.0.3-BETA", use = "local" }
+fabric-mappings = { group = "dev.extframework.integrations", version = "1.0-BETA", use = "local" }
+mcp-mappings = {group = "dev.extframework.extension", version = "1.0.4-BETA", use = "local"}

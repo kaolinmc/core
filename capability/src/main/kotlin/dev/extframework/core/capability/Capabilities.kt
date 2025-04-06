@@ -24,6 +24,10 @@ public interface Capabilities {
         impl: T
     )
 
+    public fun <T : Capability> unregister(
+        ref: Capability.Reference<T>,
+    )
+
     public operator fun <T : Capability> get(
         ref: Capability.Reference<T>,
     ): T

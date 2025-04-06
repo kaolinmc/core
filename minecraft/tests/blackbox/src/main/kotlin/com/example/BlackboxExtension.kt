@@ -10,7 +10,14 @@ public val startApp: Capability.Reference<Capability0<Unit>> by TargetCapabiliti
 
 public class BlackboxExtension : Entrypoint() {
     override fun init() {
-        println("Init")
+        println("Init v2")
         startApp.call()
+    }
+
+    override fun cleanup() {
+        println("Cleaning up capabilities")
+        startApp.cleanup()
+        println("Cleaned")
+        System.setProperty("cleaned", "true")
     }
 }

@@ -31,6 +31,10 @@ public object TargetCapabilities : Capabilities {
         capabilities[ref] = impl
     }
 
+    override fun <T : Capability> unregister(ref: Capability.Reference<T>) {
+        capabilities.remove(ref)
+    }
+
     override fun <T : Capability> get(ref: Capability.Reference<T>): T {
         return (capabilities[ref] ?: throw Exception("Capability not found!")) as T
     }

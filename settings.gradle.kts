@@ -3,7 +3,11 @@ pluginManagement {
         maven {
             url = uri("https://maven.extframework.dev/releases")
         }
+        maven {
+            url = uri("https://maven.extframework.dev/snapshots")
+        }
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 
@@ -14,7 +18,6 @@ rootProject.name = "core"
 
 include(":tests")
 
-include("mixin")
 include("main")
 include("app")
 include("entrypoint")
@@ -26,11 +29,5 @@ include("minecraft")
 include("minecraft:api")
 findProject(":minecraft:api")?.name = "minecraft-api"
 
-include(":minecraft:blackbox")
-findProject(":minecraft:blackbox")?.projectDir = file("minecraft/tests/blackbox")
-
-include(":minecraft:app")
-findProject(":minecraft:app")?.run {
-    projectDir = file("minecraft/tests/app")
-    name = "blackbox-app"
-}
+include(":minecraft:client")
+include("minecraft:client:api")

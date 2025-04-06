@@ -1,11 +1,15 @@
 import dev.extframework.gradle.common.extFramework
+import dev.extframework.gradle.common.toolingApi
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("dev.extframework.common") version "1.0.49"
+    id("dev.extframework.common") version "1.0.52" apply false
+    id("dev.extframework") version "1.3.0" apply false
 }
 
 group = "dev.extframework.extension"
+
+println(gradle.gradleHomeDir)
 
 repositories {
     mavenCentral()
@@ -37,8 +41,30 @@ val publishAll by tasks.registering {
         ":entrypoint",
         ":app:app-api",
         ":minecraft:minecraft-api",
+        ":minecraft:client:api"
     ).forEach { project ->
         dependsOn(project(project).tasks.named("publish"))
+    }
+}
+
+val publishAllLocally by tasks.registering {
+    listOf(
+        ":app",
+        ":instrument",
+        ":main",
+        ":minecraft"
+    ).forEach { project ->
+        dependsOn(project(project).tasks.named("publishToMavenLocal"))
+    }
+
+    listOf(
+        ":capability",
+        ":entrypoint",
+        ":app:app-api",
+        ":minecraft:minecraft-api",
+        ":minecraft:client:api",
+    ).forEach { project ->
+        dependsOn(project(project).tasks.named("publishToMavenLocal"))
     }
 }
 
@@ -54,8 +80,21 @@ allprojects {
         mavenLocal()
     }
 
+    dependencies {
+        toolingApi(version = "1.0.8-SNAPSHOT")
+    }
+
     kotlin {
         explicitApi()
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            freeCompilerArgs += "-Xexplicit-api=strict"
+        }
+    }
+
+    kotlin {
         jvmToolchain(8)
     }
 }

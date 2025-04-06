@@ -1,82 +1,75 @@
-import dev.extframework.gradle.common.mixin
+import dev.extframework.core.main.main
+import dev.extframework.gradle.common.extFramework
+import dev.extframework.gradle.common.*
+import dev.extframework.minecraft.minecraft
+import dev.extframework.minecraft.task.GenerateMinecraftSource
+import dev.extframework.minecraft.task.LaunchMinecraft
+import dev.extframework.minecraft.MojangNamespaces
 
-group = "com.example"
-version = "1"
-
-sourceSets {
-    create("target1")
+plugins {
+    kotlin("jvm") version "2.0.21"
+    id("maven-publish")
+    id("dev.extframework") version "1.3.0"
+    id("dev.extframework.common") version "1.0.52"
 }
 
-dependencies {
-    implementation(project(":minecraft:minecraft-api"))
-    "target1Implementation"(project(":minecraft:minecraft-api"))
+group = "dev.extframework.extension"
+version = "1.0-BETA"
 
-    "target1Implementation"(project(":minecraft:blackbox-app"))
-
-    implementation(project(":capability"))
-    "target1Implementation"(project(":capability"))
-
-
-    mixin(configurationName = "target1Implementation")
-    implementation(project(":entrypoint"))
-    "target1Implementation"(project(":entrypoint"))
-    "target1Implementation"(sourceSets.main.get().output)
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = uri("https://repo.extframework.dev/registry")
+    }
+    extFramework()
 }
 
-val generateTargetPrm by tasks.registering(GeneratePrm::class) {
-    sourceSetName.set("target1")
-    prm.set(
-        PartitionRuntimeModel(
-            "minecraft", "target1",
-            options = mutableMapOf(
-                "versions" to "1",
-                "entrypoint" to "com.example.TargetEntrypoint"
-            )
-        )
-    )
-    includeMavenLocal.set(true)
-    ignoredModules.addAll(
-        "dev.extframework.core:blackbox-app"
-    )
+val publishToMavenLocal by tasks.getting
+
+val launchLatest by tasks.registering(LaunchMinecraft::class) {
+    dependsOn(publishToMavenLocal)
+    mcVersion.set("1.21.4")
+    targetNamespace = MojangNamespaces.deobfuscated.identifier
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
 }
 
-val generateMainPrm by tasks.registering(GeneratePrm::class) {
-    sourceSetName.set("main")
-    prm.set(
-        PartitionRuntimeModel(
-            "main", "main",
-            options = mutableMapOf(
-                "extension-class" to "com.example.BlackboxExtension"
-            )
-        )
-    )
-    includeMavenLocal.set(true)
-    ignoredModules.addAll(
-    )
+val setup by tasks.registering {
+    dependsOn(tasks.withType<GenerateMinecraftSource>())
 }
 
-val generateErm by tasks.registering(GenerateErm::class) {
+extension {
     partitions {
-        add(generateMainPrm.get())
-        add(generateTargetPrm.get())
-    }
-    includeMavenLocal.set(true)
-    parents {
-        add(project(":minecraft"))
-    }
-}
-
-val target1Jar by tasks.registering(Jar::class) {
-    from(sourceSets.named("target1").get().output)
-    archiveClassifier.set("target1")
-}
-
-extensions.getByType(PublishingExtension::class).apply {
-    publications {
-        create("maven", MavenPublication::class.java) {
-            artifact(generateErm).classifier = "erm"
-            artifact(tasks.named("jar")).classifier = "main"
-            artifact(target1Jar).classifier = "target1"
+        main {
+            extensionClass = "com.example.BlackboxExtension"
+            dependencies {
+                implementation("dev.extframework.core:entrypoint:1.0-BETA")
+                implementation("dev.extframework.core:capability:1.0.1-BETA")
+                implementation("dev.extframework.core:minecraft-api:1.0-BETA")
+            }
+        }
+        minecraft("target1") {
+            entrypoint = "com.example.TargetEntrypoint"
+            mappings = MojangNamespaces.deobfuscated
+            supportVersions("1.21.4")
+            dependencies {
+                implementation("dev.extframework.core:capability:1.0.1-BETA")
+                implementation("dev.extframework.core:entrypoint:1.0-BETA")
+                mixin()
+                minecraft("1.21.4")
+            }
+        }
+        minecraft("target2") {
+            entrypoint = "com.example.TargetEntrypoint2"
+            mappings = MojangNamespaces.deobfuscated
+            supportVersions()
+            dependencies {
+                implementation("dev.extframework.core:minecraft-api:1.0-BETA")
+                implementation("dev.extframework.core:capability:1.0.1-BETA")
+                implementation("dev.extframework.core:entrypoint:1.0-BETA")
+            }
         }
     }
 }

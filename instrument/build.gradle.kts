@@ -5,42 +5,65 @@ import dev.extframework.gradle.common.dm.artifactResolver
 import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.common.objectContainer
 import dev.extframework.gradle.common.toolingApi
-import util.basicExtensionInfo
 
 plugins {
-    kotlin("jvm")
+    id("dev.extframework")
 }
 
-version = "1.0-BETA"
+version = "1.0.1-BETA"
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation(project(":app:app-api"))
-    implementation(project(":app"))
-    toolingApi()
-    boot()
-    jobs()
-    artifactResolver()
-    archives()
-    commonUtil()
-    objectContainer()
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+extension {
+    model {
+        attribute("unloadable", false)
+    }
+    partitions {
+        tweaker {
+            tweakerClass = "dev.extframework.core.instrument.InstrumentTweaker"
+            dependencies {
+                toolingApi(version = "1.0.8-SNAPSHOT")
+
+                implementation(project(":app:app-api"))
+                boot()
+                jobs()
+                artifactResolver()
+                archives()
+                commonUtil()
+                objectContainer()
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+                implementation("net.bytebuddy:byte-buddy-agent:1.17.1")
+
+            }
+        }
+    }
+
+    metadata {
+        name = "Instrumentation API"
+        description = "An API for instrumenting the application target"
+    }
 }
+
+//dependencies {
+//    implementation(project(":app"))
+//
+//    boot()
+//    jobs()
+//    artifactResolver()
+//    archives()
+//    commonUtil()
+//    objectContainer()
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+//
+//}
 
 tasks.test {
     useJUnitPlatform()
 }
-kotlin {
-    jvmToolchain(8)
-}
 
-basicExtensionInfo(
-    "dev.extframework.core.instrument.InstrumentTweaker",
-    "Instrumentation API",
-    "An API for instrumenting the application target"
-) {
-    add(project(":app"))
+kotlin {
+    explicitApi()
+    jvmToolchain(8)
 }

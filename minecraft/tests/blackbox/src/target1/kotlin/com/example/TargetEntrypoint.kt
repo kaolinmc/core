@@ -6,7 +6,7 @@ import dev.extframework.core.entrypoint.Entrypoint
 class TargetEntrypoint : Entrypoint() {
     override fun init() {
         startApp += Capability0 {
-            App().main()
+            println("Capability")
         }
     }
 }

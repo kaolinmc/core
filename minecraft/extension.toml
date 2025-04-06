@@ -1,0 +1,7 @@
+[repositories]
+local = true
+
+[parents]
+":app" = { isBuild = true }
+":main" = { isBuild = true }
+":instrument" = { isBuild = true }

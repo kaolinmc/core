@@ -5,12 +5,12 @@ import dev.extframework.gradle.common.toolingApi
 
 plugins {
     kotlin("jvm")
+    id("dev.extframework.common")
 }
 
 version = "1.0-BETA"
 
 dependencies {
-    toolingApi()
     boot()
     artifactResolver(maven = true)
 }
@@ -18,6 +18,7 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(8)
 }

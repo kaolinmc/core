@@ -42,38 +42,37 @@ import kotlin.io.path.Path
 //    }
 //}
 
-
-fun createMinecraftApp(): ApplicationTarget {
-    return object : MinecraftAppApi() {
-        override val node: ClassLoadedArchiveNode<ApplicationDescriptor> =
-            object : ClassLoadedArchiveNode<ApplicationDescriptor> {
-                private val appDesc = ApplicationDescriptor.parseDescription("test:app:1")!!
-                override val access: ArchiveAccessTree = object : ArchiveAccessTree {
-                    override val descriptor: ArtifactMetadata.Descriptor = appDesc
-                    override val targets: List<ArchiveTarget> = listOf()
-                }
-                override val descriptor: ApplicationDescriptor = appDesc
-                val archive = Archives.Finders.ZIP_FINDER.find(Path("tests/mc/client.jar"))
-                override val handle: ArchiveHandle = Archives.resolve(
-                    archive,
-                    IntegratedLoader(
-                        "App",
-                        sourceProvider = ArchiveSourceProvider(archive),
-                        resourceProvider = ArchiveResourceProvider(archive),
-                        parent = ClassLoader.getSystemClassLoader(),
-                    ),
-                    Archives.Resolvers.ZIP_RESOLVER,
-                    setOf()
-                ).archive
+class App  : MinecraftAppApi() {
+    override val node: ClassLoadedArchiveNode<ApplicationDescriptor> =
+        object : ClassLoadedArchiveNode<ApplicationDescriptor> {
+            private val appDesc = ApplicationDescriptor.parseDescription("test:app:1")!!
+            override val access: ArchiveAccessTree = object : ArchiveAccessTree {
+                override val descriptor: ArtifactMetadata.Descriptor = appDesc
+                override val targets: List<ArchiveTarget> = listOf()
             }
-        override val path: Path = Path("")
+            override val descriptor: ApplicationDescriptor = appDesc
+            val archive = Archives.Finders.ZIP_FINDER.find(Path("tests/mc/client.jar"))
+            override val handle: ArchiveHandle = Archives.resolve(
+                archive,
+                IntegratedLoader(
+                    "App",
+                    sourceProvider = ArchiveSourceProvider(archive),
+                    resourceProvider = ArchiveResourceProvider(archive),
+                    parent = ClassLoader.getSystemClassLoader(),
+                ),
+                Archives.Resolvers.ZIP_RESOLVER,
+                setOf()
+            ).archive
+        }
+    override val path: Path = Path("")
 
-        override val gameDir: Path = Path("tests/mc")
-        override val gameJar: Path = Path("tests/mc/client.jar")
-        override val classpath: List<Path> = listOf()
-        override val version: String = "1"
-    }
+    override val gameDir: Path = Path("tests/mc")
+    override val gameJar: Path = Path("tests/mc/client.jar")
+    override val classpath: List<Path> = listOf()
+    override var version: String = "1"
 }
+
+fun createMinecraftApp() = App()
 
 fun createBlackboxApp(path: Path): ApplicationTarget {
     return object : ApplicationTarget {

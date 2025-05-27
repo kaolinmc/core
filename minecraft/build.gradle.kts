@@ -21,6 +21,15 @@ kotlin {
 }
 
 extension {
+    model {
+        attribute("unloadable", false)
+    }
+    metadata {
+        name = "Minecraft core"
+        app = "minecraft"
+        developers = listOf("durganmcbroom")
+        description = "Adds Minecraft support to the extframework ecosystem"
+    }
     partitions {
         tweaker {
             tweakerClass = "dev.extframework.core.minecraft.MinecraftTweaker"

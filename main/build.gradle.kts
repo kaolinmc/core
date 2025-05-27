@@ -46,6 +46,7 @@ extension {
     metadata {
         name = "Main partition"
         description = "An extension that adds a main partition for loading environment agnostic code"
+        app = "minecraft"
     }
 }
 

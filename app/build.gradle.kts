@@ -46,6 +46,7 @@ extension {
     metadata {
         name = "Application API"
         description = "An API for targeting applications"
+        app = "minecraft"
     }
 }
 

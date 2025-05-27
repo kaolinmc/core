@@ -45,6 +45,7 @@ extension {
     metadata {
         name = "Instrumentation API"
         description = "An API for instrumenting the application target"
+        app = "minecraft"
     }
 }
 

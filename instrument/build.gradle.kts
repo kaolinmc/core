@@ -24,7 +24,7 @@ extension {
         tweaker {
             tweakerClass = "dev.extframework.core.instrument.InstrumentTweaker"
             dependencies {
-                toolingApi(version = "1.0.8-SNAPSHOT")
+                toolingApi()
 
                 implementation(project(":app:app-api"))
                 boot()

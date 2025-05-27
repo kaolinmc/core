@@ -13,12 +13,12 @@ repositories {
 }
 
 dependencies {
-    boot(version = "3.6.2-SNAPSHOT")
+    boot()
 
     implementation(project(":instrument"))
     implementation(project(":app"))
     implementation(project(":app:app-api"))
-    extLoader(version = "2.1.17-SNAPSHOT")
+    extLoader()
     artifactResolver()
     objectContainer()
     implementation(project(":minecraft:minecraft-api"))

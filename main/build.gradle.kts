@@ -16,7 +16,7 @@ extension {
         tweaker {
             tweakerClass = "dev.extframework.core.main.MainPartitionTweaker"
             dependencies {
-                toolingApi(version = "1.0.8-SNAPSHOT")
+                toolingApi()
                 implementation(project(":entrypoint"))
                 boot()
                 jobs()
@@ -30,7 +30,7 @@ extension {
         gradle {
             entrypointClass = "dev.extframework.core.main.MainGradlePlugin"
             dependencies {
-                toolingApi(version = "1.0.8-SNAPSHOT")
+                toolingApi()
                 implementation(gradleApi())
                 jobs()
                 boot()

@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    toolingApi(version = "1.0.8-SNAPSHOT")
+    toolingApi()
     jobs()
 }
 

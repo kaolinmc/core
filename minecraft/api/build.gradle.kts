@@ -11,7 +11,7 @@ version = "1.0.1-BETA"
 dependencies {
     implementation(project(":app:app-api"))
     implementation(project(":capability"))
-    toolingApi(version = "1.0.8-SNAPSHOT")
+    toolingApi()
 }
 
 tasks.test {

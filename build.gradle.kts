@@ -2,25 +2,8 @@ import dev.extframework.gradle.common.extFramework
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("dev.extframework.common") version "1.0.52" apply false
+    id("dev.extframework.common") version "1.0.53" apply false
     id("dev.extframework") version "1.3.1" apply false
-}
-
-group = "dev.extframework.extension"
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(8)
 }
 
 val publishAll by tasks.registering {
@@ -74,12 +57,9 @@ allprojects {
     repositories {
         mavenCentral()
         extFramework()
-        mavenLocal()
     }
 
-    dependencies {
-//        toolingApi(version = "1.0.8-SNAPSHOT")
-    }
+    dependencies {}
 
     kotlin {
         explicitApi()

@@ -38,9 +38,9 @@ multiRelease {
 }
 
 dependencies {
-    boot(version = "3.6.2-SNAPSHOT")
-    extLoader(version = "2.1.17-SNAPSHOT")
-    toolingApi(version = "1.0.8-SNAPSHOT")
+    boot()
+    extLoader()
+    toolingApi()
 
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))

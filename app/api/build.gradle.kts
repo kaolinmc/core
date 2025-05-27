@@ -13,7 +13,7 @@ version = "1.0.1-BETA"
 dependencies {
     boot()
     artifactResolver(maven = true)
-    toolingApi(version = "1.0.8-SNAPSHOT")
+    toolingApi()
 }
 
 tasks.test {

@@ -5,6 +5,8 @@ import dev.extframework.gradle.common.dm.artifactResolver
 import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.common.objectContainer
 import dev.extframework.gradle.common.toolingApi
+import dev.extframework.gradle.publish.ExtensionPublication
+import kotlin.jvm.java
 
 plugins {
     id("dev.extframework")
@@ -46,19 +48,6 @@ extension {
     }
 }
 
-//dependencies {
-//    implementation(project(":app"))
-//
-//    boot()
-//    jobs()
-//    artifactResolver()
-//    archives()
-//    commonUtil()
-//    objectContainer()
-//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-//
-//}
-
 tasks.test {
     useJUnitPlatform()
 }
@@ -66,4 +55,18 @@ tasks.test {
 kotlin {
     explicitApi()
     jvmToolchain(8)
+}
+
+publishing {
+    publications {
+        create("prod", ExtensionPublication::class.java)
+    }
+    repositories {
+        maven {
+            url = uri("https://repo.extframework.dev")
+            credentials {
+                password = properties["creds.ext.key"] as? String
+            }
+        }
+    }
 }

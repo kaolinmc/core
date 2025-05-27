@@ -6,6 +6,8 @@ import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.common.extFramework
 import dev.extframework.gradle.common.objectContainer
 import dev.extframework.gradle.common.toolingApi
+import dev.extframework.gradle.publish.ExtensionPublication
+import kotlin.jvm.java
 
 plugins {
     id("dev.extframework")
@@ -44,5 +46,19 @@ extension {
     metadata {
         name = "Application API"
         description = "An API for targeting applications"
+    }
+}
+
+publishing {
+    publications {
+        create("prod", ExtensionPublication::class.java)
+    }
+    repositories {
+        maven {
+            url = uri("https://repo.extframework.dev")
+            credentials {
+                password = properties["creds.ext.key"] as? String
+            }
+        }
     }
 }

@@ -1,6 +1,8 @@
 import dev.extframework.gradle.common.*
 import dev.extframework.gradle.common.dm.artifactResolver
 import dev.extframework.gradle.common.dm.jobs
+import dev.extframework.gradle.publish.ExtensionPublication
+import kotlin.jvm.java
 
 plugins {
     id("dev.extframework")
@@ -44,5 +46,19 @@ extension {
     metadata {
         name = "Main partition"
         description = "An extension that adds a main partition for loading environment agnostic code"
+    }
+}
+
+publishing {
+    publications {
+        create("prod", ExtensionPublication::class.java)
+    }
+    repositories {
+        maven {
+            url = uri("https://repo.extframework.dev")
+            credentials {
+                password = properties["creds.ext.key"] as? String
+            }
+        }
     }
 }

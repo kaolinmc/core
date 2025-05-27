@@ -43,13 +43,13 @@ common {
                 withExtFrameworkRepo()
                 defaultDevelopers()
                 gnuLicense()
-                extFrameworkScm("ext-loader")
+                extFrameworkScm("core")
             }
 
             artifactId = "minecraft-client-api"
         }
         repositories {
-            extFramework(credentials = propertyCredentialProvider, type = RepositoryType.RELEASES)
+            extFramework(credentials = propertyCredentialProvider, type = RepositoryType.SNAPSHOTS)
         }
     }
 }

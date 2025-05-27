@@ -6,17 +6,18 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0-BETA"
+version = "1.0.1-BETA"
 
 dependencies {
     implementation(project(":app:app-api"))
     implementation(project(":capability"))
-    
+    toolingApi(version = "1.0.8-SNAPSHOT")
 }
 
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(8)
 }
@@ -32,6 +33,8 @@ common {
             withJava()
             withSources()
             withDokka()
+
+            artifactId = "minecraft-api"
 
             commonPom {
                 packaging = "jar"

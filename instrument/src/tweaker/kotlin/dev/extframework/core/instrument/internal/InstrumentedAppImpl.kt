@@ -5,6 +5,7 @@ import dev.extframework.archives.transform.AwareClassWriter
 import dev.extframework.archives.zip.classLoaderToArchive
 import dev.extframework.boot.archive.ArchiveAccessTree
 import dev.extframework.boot.archive.ClassLoadedArchiveNode
+import dev.extframework.boot.util.toEnumeration
 import dev.extframework.common.util.make
 import dev.extframework.common.util.runCatching
 import dev.extframework.core.app.TargetLinker
@@ -19,11 +20,11 @@ import org.objectweb.asm.tree.ClassNode
 import java.io.InputStream
 import java.lang.instrument.ClassDefinition
 import java.net.URL
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.writeBytes
-import kotlin.io.path.writer
 
 public class InstrumentedAppImpl(
     override val delegate: ApplicationTarget,
@@ -79,11 +80,28 @@ private class InstrumentedClassLoader(
     }
 
     override fun findResources(name: String): Enumeration<URL> {
-        return delegate.classloader.getResources(name)
+        return sequenceOf(findResource(name))
+            .filterNotNull()
+            .toEnumeration()
     }
 
-    override fun findResource(name: String): URL? =
-        delegate.classloader.getResource(name)
+    override fun findResource(name: String): URL? {
+        if (name.endsWith(".class")) {
+            val clsName = name.removeSuffix(".class").replace("/", ".")
+
+            val clsBytes = getClassBytes(clsName)
+
+            if (clsBytes != null) {
+                val tmp = Files.createTempFile(clsName, null)
+
+                tmp.writeBytes(clsBytes)
+
+                return tmp.toUri().toURL()
+            }
+        }
+
+        return delegate.classloader.getResource(name)
+    }
 
     override fun toString(): String {
         return "Mixins @ app"
@@ -148,13 +166,7 @@ private class InstrumentedClassLoader(
 
         transformedNode.accept(writer)
 
-        val bytes = writer.toByteArray()
-
-        val path = Path("mixins/${transformedNode.name}.class")
-        path.make()
-        path.writeBytes(bytes)
-
-        return bytes
+        return writer.toByteArray()
     }
 
     companion object {

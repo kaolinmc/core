@@ -14,6 +14,7 @@ plugins {
 version = "1.0.1-BETA"
 
 repositories {
+    mavenLocal()
     mavenCentral()
     extFramework()
 }
@@ -22,11 +23,12 @@ extension {
     model {
         attribute("unloadable", false)
     }
+
     partitions {
         tweaker {
             tweakerClass = "dev.extframework.core.app.AppTweaker"
             dependencies {
-                toolingApi()
+                toolingApi(version = "1.0.8-SNAPSHOT")
                 implementation(project("app-api"))
                 boot()
                 jobs()

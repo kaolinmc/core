@@ -1,15 +1,12 @@
 import dev.extframework.gradle.common.extFramework
-import dev.extframework.gradle.common.toolingApi
 
 plugins {
     kotlin("jvm") version "2.0.21"
     id("dev.extframework.common") version "1.0.52" apply false
-    id("dev.extframework") version "1.3.0" apply false
+    id("dev.extframework") version "1.3.1" apply false
 }
 
 group = "dev.extframework.extension"
-
-println(gradle.gradleHomeDir)
 
 repositories {
     mavenCentral()
@@ -41,7 +38,7 @@ val publishAll by tasks.registering {
         ":entrypoint",
         ":app:app-api",
         ":minecraft:minecraft-api",
-        ":minecraft:client:api"
+        ":minecraft:client:client-api"
     ).forEach { project ->
         dependsOn(project(project).tasks.named("publish"))
     }
@@ -62,7 +59,7 @@ val publishAllLocally by tasks.registering {
         ":entrypoint",
         ":app:app-api",
         ":minecraft:minecraft-api",
-        ":minecraft:client:api",
+        ":minecraft:client:client-api",
     ).forEach { project ->
         dependsOn(project(project).tasks.named("publishToMavenLocal"))
     }
@@ -81,7 +78,7 @@ allprojects {
     }
 
     dependencies {
-        toolingApi(version = "1.0.8-SNAPSHOT")
+//        toolingApi(version = "1.0.8-SNAPSHOT")
     }
 
     kotlin {

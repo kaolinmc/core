@@ -56,11 +56,11 @@ tasks.test {
 
     dependsOn(listDependencies)
 
-    dependsOn(project(":main").tasks.named("publishToMavenLocal"))
-    dependsOn(project(":app").tasks.named("publishToMavenLocal"))
-    dependsOn(project(":minecraft:blackbox").tasks.named("publishToMavenLocal"))
-    dependsOn(project(":minecraft").tasks.named("publishToMavenLocal"))
-    dependsOn(project(":minecraft:minecraft-api").tasks.named("publishToMavenLocal"))
-    dependsOn(project(":app:app-api").tasks.named("publishToMavenLocal"))
-    dependsOn(project(":entrypoint").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":main").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":app").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":minecraft:blackbox").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":minecraft").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":minecraft:api").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":app:app-api").tasks.named("publishToMavenLocal"))
+//    dependsOn(project(":entrypoint").tasks.named("publishToMavenLocal"))
 }

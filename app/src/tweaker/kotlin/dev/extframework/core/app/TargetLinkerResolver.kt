@@ -12,8 +12,9 @@ import dev.extframework.boot.archive.*
 import dev.extframework.boot.monad.Tagged
 import dev.extframework.boot.monad.Tree
 import dev.extframework.core.app.TargetArtifactRepository
-import dev.extframework.tooling.api.environment.EnvironmentAttribute
-import dev.extframework.tooling.api.environment.EnvironmentAttributeKey
+import dev.extframework.tooling.api.environment.ExtensionEnvironment
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute.Key
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -32,7 +33,7 @@ public object TargetArtifactMetadata : ArtifactMetadata<TargetDescriptor, Nothin
     listOf()
 )
 
-public class TargetLinkerResolver(
+public open class TargetLinkerResolver(
     private val linker: TargetLinker,
 ) : ArchiveNodeResolver<
         TargetDescriptor,
@@ -40,15 +41,15 @@ public class TargetLinkerResolver(
         TargetNode,
         TargetRepositorySettings,
         TargetArtifactMetadata
-        >, EnvironmentAttribute {
+        >, Attribute {
     override val context: ResolutionContext<TargetRepositorySettings, TargetArtifactRequest, TargetArtifactMetadata> = TargetArtifactFactory.createContext()
     override val metadataType: Class<TargetArtifactMetadata> = TargetArtifactMetadata::class.java
     override val name: String = "target"
     override val nodeType: Class<in TargetNode> = TargetNode::class.java
 
-    override val key: EnvironmentAttributeKey<*> = TargetLinkerResolver
+    override val key: Key<*> = TargetLinkerResolver
 
-    public companion object : EnvironmentAttributeKey<TargetLinkerResolver>
+    public companion object : ExtensionEnvironment.Attribute.Key<TargetLinkerResolver>
 
     override fun deserializeDescriptor(descriptor: Map<String, String>, trace: ArchiveTrace): Result<TargetDescriptor> =
         result { TargetDescriptor }

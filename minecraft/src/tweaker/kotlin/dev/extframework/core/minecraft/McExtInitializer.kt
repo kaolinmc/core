@@ -13,34 +13,32 @@ import dev.extframework.boot.loader.DelegatingResourceProvider
 import dev.extframework.core.app.TargetLinker
 import dev.extframework.core.instrument.InstrumentAgent
 import dev.extframework.core.main.ExtensionInitialization
+import dev.extframework.core.main.MainInit
 import dev.extframework.core.minecraft.mixin.MixinProcessContext
 import dev.extframework.core.minecraft.mixin.MixinSubsystem
 import dev.extframework.core.minecraft.partition.MinecraftPartitionLoader
 import dev.extframework.core.minecraft.partition.MinecraftPartitionNode
-import dev.extframework.core.minecraft.util.WeakReferenceClassProvider
-import dev.extframework.core.minecraft.util.WeakReferenceResourceProvider
+import dev.extframework.minecraft.client.api.MinecraftExtensionInitializer
 import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
 import dev.extframework.tooling.api.exception.StructuredException
-import dev.extframework.tooling.api.extension.ExtensionInitializer
 import dev.extframework.tooling.api.extension.ExtensionNode
 import dev.extframework.tooling.api.extension.ExtensionResolver
 import dev.extframework.tooling.api.extension.descriptor
+import dev.extframework.tooling.api.extension.partition.ExtensionPartitionContainer
 import dev.extframework.tooling.api.extension.partition.artifact.PartitionArtifactRequest
-import dev.extframework.tooling.api.uber.UberArtifactRequest
-import dev.extframework.tooling.api.uber.UberDescriptor
-import dev.extframework.tooling.api.uber.UberParentRequest
-import dev.extframework.tooling.api.uber.UberRepositorySettings
-import dev.extframework.tooling.api.uber.UberResolver
+import dev.extframework.tooling.api.extension.partition.artifact.partition
+import dev.extframework.tooling.api.uber.*
 
-public class MinecraftExtensionInitializer(
+public class McExtInitializer(
     private val instrumentationAgents: MutableObjectSetAttribute<InstrumentAgent>,
     private val linker: TargetLinker,
-    public val delegate: ExtensionInitializer?,
+    public val delegate: MinecraftExtensionInitializer?,
     private val app: MinecraftApp,
     private val extResolver: ExtensionResolver,
-    private val graph: ArchiveGraph
-) : ExtensionInitializer {
-    override fun init(nodes: List<ExtensionNode>): Job<Unit> = job {
+    private val graph: ArchiveGraph,
+    private val environment: String
+) : MinecraftExtensionInitializer {
+    override fun initialize(nodes: List<ExtensionNode>): Job<Unit> = job {
         app.setup()().merge()
 
         for (node in nodes) {
@@ -64,9 +62,9 @@ public class MinecraftExtensionInitializer(
             }
         }
 
-        val mainDescriptor = UberDescriptor("Minecraft partitions")
+        val mcDescriptor = UberDescriptor("Minecraft partitions")
         val request = UberArtifactRequest(
-            mainDescriptor,
+            mcDescriptor,
             nodes.flatMap { node ->
                 node.runtimeModel.partitions
                     .filter { model -> model.type == MinecraftPartitionLoader.TYPE }
@@ -79,7 +77,7 @@ public class MinecraftExtensionInitializer(
                     }
                     .map { model ->
                         UberParentRequest(
-                            PartitionArtifactRequest(node.descriptor, model.name),
+                            PartitionArtifactRequest(node.descriptor, model.name, environment),
                             extResolver.accessBridge.repositoryFor(node.descriptor),
                             extResolver.partitionResolver,
                         )
@@ -94,15 +92,21 @@ public class MinecraftExtensionInitializer(
         )().merge()
 
         graph.get(
-            mainDescriptor,
+            mcDescriptor,
             UberResolver
         )().merge()
 
         for (node in nodes) {
+            // TODO all partitions?
+            val partitions = node.runtimeModel.partitions
+                .map { node.descriptor.partition(it.name, environment) }
+                .mapNotNull { graph.getNode(it) }
+                .filterIsInstance<ExtensionPartitionContainer<*, *>>()
+
             instrumentationAgents
                 .filterIsInstance<MixinSubsystem>()
                 .onEach {
-                    it.register(MixinProcessContext(node))().merge()
+                    it.register(MixinProcessContext(node, partitions))().merge()
                 }
                 .forEach {
                     it.runPreprocessors()().merge()
@@ -111,21 +115,22 @@ public class MinecraftExtensionInitializer(
             // TODO this creates duplicates if two extensions rely on the same library.
             linker.addExtensionClasses(
                 DelegatingClassProvider(
-                    node.partitions
+                    partitions
                         .flatMap { it.access.targets.map { it.relationship.node } + it }
                         .filterIsInstance<ClassLoadedArchiveNode<*>>()
                         .map { it.handle }
                         .map { ArchiveClassProvider(it) }
-//                        .map { WeakReferenceClassProvider(it) }
                 )
             )
-            linker.addExtensionResources(DelegatingResourceProvider(node.partitions.map { it.handle }
-                .map { ArchiveResourceProvider(it) }
-//                .map { WeakReferenceResourceProvider(it) }
+            linker.addExtensionResources(
+                DelegatingResourceProvider(
+                    partitions
+                    .map { it.handle }
+                    .map { ArchiveResourceProvider(it) }
             ))
 
             // Run init on target partitions
-            node.partitions
+            partitions
                 .forEach { container ->
                     val partNode = container.node as? MinecraftPartitionNode ?: return@forEach
 
@@ -144,6 +149,7 @@ public class MinecraftExtensionInitializer(
                 }
 
         }
-        delegate?.init(nodes)?.invoke()?.merge()
+
+        MainInit(extResolver, graph, environment).init(nodes)().merge()
     }
 }

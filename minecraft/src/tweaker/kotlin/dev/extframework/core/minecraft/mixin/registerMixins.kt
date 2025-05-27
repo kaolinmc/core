@@ -20,6 +20,7 @@ import dev.extframework.mixin.api.InstructionSelector
 import dev.extframework.mixin.engine.impl.code.InstructionInjectionParser
 import dev.extframework.mixin.engine.impl.code.InstructionInjector
 import dev.extframework.mixin.engine.impl.method.MethodInjector
+import dev.extframework.tooling.api.ExtensionLoader
 import dev.extframework.tooling.api.environment.*
 import dev.extframework.tooling.api.extension.partition.ExtensionPartitionContainer
 import org.objectweb.asm.Type
@@ -34,17 +35,17 @@ public fun registerMixins(environment: ExtensionEnvironment) {
     // Mixin Mapping Manager
     val mixinMappingManager = MixinMappingManager(
         injectionRemappers,
-        environment[MappingManager].extract(),
+        environment[MappingManager],
     )
 
     // Redefinition
-    var redefinitionFlags: RedefinitionFlags = environment[redefinitionAttrKey].getOrNull()?.let {
+    var redefinitionFlags: RedefinitionFlags = environment.find(redefinitionAttrKey)?.let {
         RedefinitionFlags.valueOf(it.value)
     } ?: RedefinitionFlags.ONLY_INSTRUCTIONS
 
     // Type provision
     var typeProvider: (ClassReference) -> Class<*>? = { ref ->
-        environment.archiveGraph.nodes()
+        environment[ExtensionLoader].graph.nodes()
             .filterIsInstance<ExtensionPartitionContainer<*, *>>()
             .filter { it.metadata.name == "tweaker" }
             .firstNotNullOfOrNull {
@@ -71,12 +72,12 @@ public fun registerMixins(environment: ExtensionEnvironment) {
     environment += ValueAttribute(engine, engineAttrKey)
 
     // Instrumentation agents
-    val instrumentAgents = environment[instrumentAgentsAttrKey].extract()
+    val instrumentAgents = environment[instrumentAgentsAttrKey]
     instrumentAgents.add(
         DefaultMixinSubsystem(
             engine,
             mixinMappingManager,
-            environment[ApplicationTarget].extract() as InstrumentedApplicationTarget,
+            environment[ApplicationTarget] as InstrumentedApplicationTarget,
         )
     )
 }

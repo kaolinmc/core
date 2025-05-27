@@ -30,4 +30,6 @@ include("minecraft:api")
 findProject(":minecraft:api")?.name = "minecraft-api"
 
 include(":minecraft:client")
+
 include("minecraft:client:api")
+findProject(":minecraft:client:api")?.name = "client-api"

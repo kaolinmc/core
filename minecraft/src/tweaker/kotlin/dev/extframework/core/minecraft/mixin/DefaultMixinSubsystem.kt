@@ -59,9 +59,7 @@ public class DefaultMixinSubsystem(
     private fun resolveMixins(
         ctx: MixinProcessContext,
     ): Sequence<Pair<ClassNode, MinecraftPartitionMetadata>> {
-        val (node) = ctx
-
-        return node.partitions
+        return ctx.partitions
             .asSequence()
             .map(ExtensionPartitionContainer<*, *>::metadata)
             .filterIsInstance<MinecraftPartitionMetadata>()
@@ -86,18 +84,22 @@ public class DefaultMixinSubsystem(
         for (reference in needPreprocessing.toSet()) {
             needPreprocessing.remove(reference)
 
+            // The instrumented app API should already transform this.
             app.node.handle
                 ?.classloader
                 ?.getResourceAsStream("${reference.internalName}.class")
-                .use { it ->
-                    val node = if (it != null) {
-                        val node = ClassNode()
-                        ClassReader(it).accept(node, ClassReader.EXPAND_FRAMES)
+                ?.use { it ->
+//                    val node = if (it != null) {
+//                        val node = ClassNode()
+//                        ClassReader(it).accept(node, ClassReader.EXPAND_FRAMES)
+//
+//                        engine.transform(node)
+//                    } else {
+//                        engine.generate(reference)
+//                    } ?: return@use
 
-                        engine.transform(node)
-                    } else {
-                        engine.generate(reference)
-                    } ?: return@use
+                    val node = ClassNode()
+                    ClassReader(it).accept(node, ClassReader.EXPAND_FRAMES)
 
                     preprocessed[reference] = node
                 }

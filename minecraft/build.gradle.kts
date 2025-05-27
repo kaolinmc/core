@@ -23,12 +23,14 @@ extension {
         tweaker {
             tweakerClass = "dev.extframework.core.minecraft.MinecraftTweaker"
             dependencies {
+                implementation(project("minecraft-api"))
+                implementation(project("client:client-api"))
                 implementation(project(":app:app-api"))
                 implementation(project(":entrypoint"))
-                implementation(project("minecraft-api"))
                 launcherMetaHandler()
                 boot()
                 jobs()
+                toolingApi(version = "1.0.8-SNAPSHOT")
                 artifactResolver()
                 archives()
                 archiveMapper(transform = true, proguard = true)
@@ -37,15 +39,19 @@ extension {
                 mixin(version = "1.0.2-SNAPSHOT")
             }
         }
+
         gradle {
             entrypointClass = "dev.extframework.minecraft.MinecraftGradleEntrypoint"
             dependencies {
-                implementation(project("client:api"))
+                implementation(project("client:client-api"))
+                implementation(project("minecraft-api"))
+                implementation(project(":app:app-api"))
                 implementation(gradleApi())
                 boot()
                 jobs()
+                toolingApi(version = "1.0.8-SNAPSHOT")
                 artifactResolver()
-                implementation("dev.extframework:gradle-api:1.0-BETA")
+                implementation("dev.extframework:gradle-api:1.0.1-BETA")
                 archives()
                 archiveMapper(transform = true, proguard = true)
                 commonUtil()

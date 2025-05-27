@@ -3,14 +3,14 @@ package dev.extframework.core.minecraft.remap
 import dev.extframework.archive.mapper.ArchiveMapping
 import dev.extframework.archive.mapper.transform.ClassInheritanceTree
 import dev.extframework.archives.transform.TransformerConfig
-import dev.extframework.tooling.api.environment.EnvironmentAttribute
-import dev.extframework.tooling.api.environment.EnvironmentAttributeKey
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute
+import dev.extframework.tooling.api.environment.ExtensionEnvironment
 
-public interface  ExtensionRemapper : EnvironmentAttribute {
-    override val key: EnvironmentAttributeKey<*>
+public interface  ExtensionRemapper : ExtensionEnvironment.Attribute {
+    override val key: ExtensionEnvironment.Attribute.Key<*>
         get() = ExtensionRemapper
 
-    public companion object : EnvironmentAttributeKey<ExtensionRemapper>
+    public companion object : ExtensionEnvironment.Attribute.Key<ExtensionRemapper>
 
     public val priority: Int
         get() = 0

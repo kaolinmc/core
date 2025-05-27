@@ -21,7 +21,7 @@ import dev.extframework.tooling.api.extension.PartitionRuntimeModel
 import dev.extframework.tooling.api.extension.descriptor
 import dev.extframework.tooling.api.extension.partition.*
 import dev.extframework.tooling.api.extension.partition.artifact.PartitionArtifactMetadata
-import dev.extframework.tooling.api.extension.partition.artifact.partitionNamed
+import dev.extframework.tooling.api.extension.partition.artifact.partition
 import kotlinx.coroutines.awaitAll
 
 public class MainPartitionLoader(
@@ -88,7 +88,7 @@ public class MainPartitionLoader(
 //        )().merge()
 
         val parentMainPartitions = helper.erm.parents.mapAsync {
-            val result = helper.cache("main", it)()
+            val result = helper.cache("main", helper.defaultEnvironment, it)()
 
             val ex = result.exceptionOrNull()
             if (ex != null) {
@@ -100,7 +100,7 @@ public class MainPartitionLoader(
         }
 
         val parentTweakerPartitions = helper.erm.parents.mapAsync {
-            val result = helper.cache("tweaker", it)()
+            val result = helper.cache("tweaker", helper.defaultEnvironment, it)()
 
             val ex = result.exceptionOrNull()
             if (ex != null) {
@@ -112,7 +112,7 @@ public class MainPartitionLoader(
         }
 
         val tweakerPartition = if (helper.erm.partitions.any { model -> model.name == "tweaker" }) {
-            listOf(helper.cache("tweaker")().merge())
+            listOf(helper.cache("tweaker", helper.defaultEnvironment)().merge())
         } else listOf()
 
         helper.newData(
@@ -129,7 +129,7 @@ public class MainPartitionLoader(
         accessTree: PartitionAccessTree,
         helper: PartitionLoaderHelper
     ): Job<ExtensionPartitionContainer<*, MainPartitionMetadata>> = job {
-        val thisDescriptor = helper.erm.descriptor.partitionNamed(metadata.name)
+        val thisDescriptor = helper.descriptor
 
         ExtensionPartitionContainer(
             thisDescriptor,

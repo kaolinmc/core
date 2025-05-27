@@ -30,7 +30,6 @@ import dev.extframework.core.minecraft.internal.MojangMappingProvider
 import dev.extframework.core.minecraft.util.emptyArchiveHandle
 import dev.extframework.core.minecraft.util.write
 import dev.extframework.tooling.api.environment.ExtensionEnvironment
-import dev.extframework.tooling.api.environment.extract
 import dev.extframework.tooling.api.environment.wrkDirAttrKey
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -57,8 +56,8 @@ internal fun MinecraftApp(
 
     InstrumentedAppImpl(
         mcApp,
-        environment[TargetLinker].extract(),
-        environment[instrumentAgentsAttrKey].extract()
+        environment[TargetLinker],
+        environment[instrumentAgentsAttrKey]
     )
 }
 
@@ -66,7 +65,7 @@ public class MinecraftApp internal constructor(
     private val environment: ExtensionEnvironment,
     public val delegate: MinecraftAppApi,
 ) : MinecraftAppApi() {
-    private val wrkDir by environment[wrkDirAttrKey]
+    private val wrkDir = environment[wrkDirAttrKey]
 
     override val path: Path by delegate::path
     override val gameDir: Path by delegate::gameDir
@@ -93,17 +92,18 @@ public class MinecraftApp internal constructor(
         override var access: ArchiveAccessTree = delegate.node.access
         override var descriptor: ApplicationDescriptor = delegate.node.descriptor
     }
+
     private val internalNode = InternalNode()
     override val node: ClassLoadedArchiveNode<ApplicationDescriptor> = internalNode
 
     public var setup: Boolean = false
         private set
 
-    internal fun setup() = job {
+    public fun setup(): Job<Unit> = job {
         if (setup) return@job
 
         val source = MojangMappingProvider.Companion.OBF_TYPE
-        val destination by environment[mappingTargetAttrKey]
+        val destination = environment[mappingTargetAttrKey]
 
         val remappedPath: Path =
             wrkDir.value resolve "remapped" resolve "minecraft" resolve destination.value.path resolve delegate.node.descriptor.version
@@ -122,7 +122,7 @@ public class MinecraftApp internal constructor(
 
         val classpath = if (!mappingsMarker.exists()) {
             val mappings: ArchiveMapping by lazy {
-                newMappingsGraph(environment[mappingProvidersAttrKey].extract())
+                newMappingsGraph(environment[mappingProvidersAttrKey])
                     .findShortest(source.identifier, destination.value.identifier)
                     .forIdentifier(delegate.node.descriptor.version)
             }
@@ -250,7 +250,7 @@ public class MinecraftApp internal constructor(
     }
 
     private companion object {
-        class LateInit<T: Any>(
+        class LateInit<T : Any>(
             private val initialized: KProperty<Boolean>
         ) {
             private var value: T? = null
@@ -268,7 +268,7 @@ public class MinecraftApp internal constructor(
             }
         }
 
-        fun <T: Any> lateInit(
+        fun <T : Any> lateInit(
             initialized: KProperty<Boolean>
         ) = LateInit<T>(initialized)
     }

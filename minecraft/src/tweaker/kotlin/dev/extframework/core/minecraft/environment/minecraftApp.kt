@@ -7,7 +7,7 @@ import dev.extframework.tooling.api.environment.ExtensionEnvironment
 
 public val ExtensionEnvironment.minecraft: MinecraftApp
     get() {
-        val instrumented = get(ApplicationTarget).get().getOrThrow() as InstrumentedAppImpl
+        val instrumented = get(ApplicationTarget) as InstrumentedAppImpl
         val minecraft = instrumented.delegate as MinecraftApp
 
         return minecraft

@@ -1,5 +1,7 @@
 import dev.extframework.gradle.common.RepositoryType
+import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.common.extFramework
+import dev.extframework.gradle.common.toolingApi
 
 plugins {
     kotlin("jvm")
@@ -14,15 +16,17 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    toolingApi(version = "1.0.8-SNAPSHOT")
+    jobs()
 }
 
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(8)
 }
-
 
 common {
     defaultJavaSettings()
@@ -32,6 +36,15 @@ common {
             withSources()
             withDokka()
             withJava()
+
+            commonPom {
+                packaging = "jar"
+
+                withExtFrameworkRepo()
+                defaultDevelopers()
+                gnuLicense()
+                extFrameworkScm("ext-loader")
+            }
 
             artifactId = "minecraft-client-api"
         }

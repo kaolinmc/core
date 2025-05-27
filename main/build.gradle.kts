@@ -30,11 +30,11 @@ extension {
         gradle {
             entrypointClass = "dev.extframework.core.main.MainGradlePlugin"
             dependencies {
+                toolingApi(version = "1.0.8-SNAPSHOT")
                 implementation(gradleApi())
-//                boot()
                 jobs()
-//                artifactResolver()
-                implementation("dev.extframework:gradle-api:1.0-BETA")
+                boot()
+                implementation("dev.extframework:gradle-api:1.0.1-BETA")
                 commonUtil()
                 objectContainer()
             }

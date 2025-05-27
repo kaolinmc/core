@@ -2,10 +2,7 @@ package dev.extframework.core.app
 
 import dev.extframework.boot.loader.*
 import dev.extframework.core.app.api.ApplicationTarget
-import dev.extframework.tooling.api.environment.DeferredValue
-import dev.extframework.tooling.api.environment.EnvironmentAttribute
-import dev.extframework.tooling.api.environment.EnvironmentAttributeKey
-import dev.extframework.tooling.api.environment.extract
+import dev.extframework.tooling.api.environment.ExtensionEnvironment
 import java.net.URL
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -15,21 +12,21 @@ import kotlin.concurrent.withLock
 //       class provider should also have the ability to remove classes,
 //       and one should be able to remove extension classes by referencing its
 //       descriptor or something equivalent.
-public class TargetLinker : EnvironmentAttribute {
-    override val key: EnvironmentAttributeKey<*> = TargetLinker
+public class TargetLinker : ExtensionEnvironment.Attribute {
+    override val key: ExtensionEnvironment.Attribute.Key<*> = TargetLinker
 
     private var clState: MutableSet<String> = HashSet()
     private var rlState: LinkerState = LinkerState.NEITHER
     private val clLock: ReentrantLock = ReentrantLock()
     private val rlLock: ReentrantLock = ReentrantLock()
 
-    internal lateinit var target: DeferredValue<ApplicationTarget>
+    public lateinit var target: ApplicationTarget
 
     public val targetLoader: IntegratedLoader = IntegratedLoader(
         name = "Extension -> (Linker) -> App",
         classProvider = object : ClassProvider {
             override val packages: Set<String> by lazy {
-                target.extract().node.handle!!.packages
+                target.node.handle!!.packages
             }
 
             override fun findClass(name: String): Class<*>? {
@@ -87,7 +84,7 @@ public class TargetLinker : EnvironmentAttribute {
 
             this.rlState = state
             val r = when (state) {
-                LinkerState.LOAD_TARGET -> target.extract().node.handle!!.classloader.getResources(name).asSequence()
+                LinkerState.LOAD_TARGET -> target.node.handle!!.classloader.getResources(name).asSequence()
                 LinkerState.LOAD_EXTENSION -> extensionResources.findResources(name)
                 LinkerState.NEITHER -> throw IllegalArgumentException("Cannot load linker state of neither.")
             }
@@ -115,7 +112,7 @@ public class TargetLinker : EnvironmentAttribute {
             this.clState.add(name)
 
             val c = when (state) {
-                LinkerState.LOAD_TARGET -> target.extract().node.handle!!.classloader.loadClass(name)
+                LinkerState.LOAD_TARGET -> target.node.handle!!.classloader.loadClass(name)
                 LinkerState.LOAD_EXTENSION -> extensionClasses.findClass(name)
                 LinkerState.NEITHER -> throw IllegalArgumentException("Cannot load linker state of 'NEITHER'.")
             }
@@ -126,7 +123,7 @@ public class TargetLinker : EnvironmentAttribute {
         }
     }
 
-    public companion object : EnvironmentAttributeKey<TargetLinker>
+    public companion object : ExtensionEnvironment.Attribute.Key<TargetLinker>
 
     private enum class LinkerState {
         NEITHER,

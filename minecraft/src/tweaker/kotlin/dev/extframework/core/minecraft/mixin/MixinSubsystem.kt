@@ -2,8 +2,8 @@ package dev.extframework.core.minecraft.mixin
 
 import com.durganmcbroom.jobs.Job
 import dev.extframework.core.instrument.InstrumentAgent
-import dev.extframework.tooling.api.environment.EnvironmentAttribute
-import dev.extframework.tooling.api.environment.EnvironmentAttributeKey
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute.Key
 
 public interface MixinSubsystem : InstrumentAgent {
     public fun unregister(

@@ -8,11 +8,12 @@ plugins {
     id("dev.extframework.common")
 }
 
-version = "1.0-BETA"
+version = "1.0.1-BETA"
 
 dependencies {
     boot()
     artifactResolver(maven = true)
+    toolingApi(version = "1.0.8-SNAPSHOT")
 }
 
 tasks.test {

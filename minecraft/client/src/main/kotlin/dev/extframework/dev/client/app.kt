@@ -39,7 +39,15 @@ internal class ClasspathApp(
                 null
             )
 
-            override val access: ArchiveAccessTree = emptyAccess(version)
+            override val access: ArchiveAccessTree = object : ArchiveAccessTree {
+                override val descriptor: ArtifactMetadata.Descriptor = ApplicationDescriptor(
+                    "net.minecraft",
+                    "client",
+                    version,
+                    null
+                )
+                override val targets: List<ArchiveTarget> = listOf()
+            }
             private val references = classpath.map { it ->
                 ZipFinder.find(it)
             }

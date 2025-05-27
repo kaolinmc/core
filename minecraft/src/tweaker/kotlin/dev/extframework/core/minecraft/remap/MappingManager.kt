@@ -5,19 +5,18 @@ import dev.extframework.archive.mapper.findShortest
 import dev.extframework.archive.mapper.newMappingsGraph
 import dev.extframework.common.util.LazyMap
 import dev.extframework.core.minecraft.api.MappingNamespace
-import dev.extframework.tooling.api.environment.DeferredValue
-import dev.extframework.tooling.api.environment.EnvironmentAttribute
-import dev.extframework.tooling.api.environment.EnvironmentAttributeKey
+import dev.extframework.tooling.api.environment.ExtensionEnvironment
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute
+import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute.Key
 import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
-import dev.extframework.tooling.api.environment.extract
 
 public class MappingManager(
     private val mappingProviders: MutableObjectSetAttribute<MappingsProvider>,
-    private val target: DeferredValue<MappingNamespace>,
+    private val target: MappingNamespace,
     private val strict: Boolean = true,
     private val mcVersion: String
-) : EnvironmentAttribute {
-    override val key: EnvironmentAttributeKey<*> = MappingManager
+) : Attribute {
+    override val key: Key<*> = MappingManager
 
     private val cache = LazyMap<Pair<MappingNamespace, MappingNamespace>, MappingContext> {
         MappingContext(
@@ -32,12 +31,12 @@ public class MappingManager(
     }
 
     public operator fun get(source: MappingNamespace): MappingContext {
-        return getTo(source, target.extract())
+        return getTo(source, target)
     }
 
     public fun getTo(source: MappingNamespace, target: MappingNamespace): MappingContext {
         return cache[source to target]!!
     }
 
-    public companion object : EnvironmentAttributeKey<MappingManager>
+    public companion object : ExtensionEnvironment.Attribute.Key<MappingManager>
 }

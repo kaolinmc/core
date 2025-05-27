@@ -6,7 +6,6 @@ import dev.extframework.gradle.api.ExtframeworkExtension
 import dev.extframework.gradle.api.MutablePartitionRuntimeModel
 import dev.extframework.gradle.api.PartitionDependencyHandler
 import dev.extframework.gradle.api.PartitionHandler
-import dev.extframework.minecraft.task.`GenerateMinecraftSource`
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.tasks.SourceSet
@@ -26,7 +25,9 @@ public class MinecraftPartitionHandler(
             project.dependencies,
             sourceSet,
             project,
-            mappings,
+            {
+                supportVersions(it)
+            }
         ) {
             partition.dependencies.add(it)
         }
@@ -63,30 +64,37 @@ public class MinecraftPartitionHandler(
 public class MinecraftPartitionDependencyHandler(
     delegate: DependencyHandler,
     sourceSet: SourceSet,
-
-    private val project: Project,
-    private val mappingsType: MappingNamespace,
-    addDependency: (EvaluatingDependency) -> Unit
+    project: Project,
+    private val  supportVersion: (value: String) -> Unit,
+    addDependency: (EvaluatingDependency) -> Unit,
 ) : PartitionDependencyHandler(
     delegate,
     sourceSet,
     addDependency
 ) {
+    public var minecraftVersion: String? = null
+        private set
     public val extframework: ExtframeworkExtension = project.extensions.getByType(ExtframeworkExtension::class.java)
 
     public fun minecraft(version: String) {
-        val taskName = "generateMinecraft${version}Sources"
-        val task =
-            project.tasks.findByName(taskName) ?: project.tasks.create(taskName, GenerateMinecraftSource::class.java) {
-                it.namespace.set(mappingsType)
-                it.minecraftVersion.set(version)
-            }
+        if (minecraftVersion != null) {
+            throw IllegalStateException("One partition cannot depend on two separate minecraft versions")
+        }
+        minecraftVersion = version
+        supportVersion(version)
 
-        delegate.add(
-            sourceSet.implementationConfigurationName,
-            project.files(task.outputs.files.asFileTree).apply {
-                builtBy(task)
-            }
-        )
+//        val taskName = "generateMinecraft${version}Sources"
+//        val task =
+//            project.tasks.findByName(taskName) ?: project.tasks.create(taskName, GenerateMinecraftSource::class.java) {
+//                it.namespace.set(mappingsType)
+//                it.minecraftVersion.set(version)
+//            }
+//
+//        delegate.add(
+//            sourceSet.implementationConfigurationName,
+//            project.files(task.outputs.files.asFileTree).apply {
+//                builtBy(task)
+//            }
+//        )
     }
 }

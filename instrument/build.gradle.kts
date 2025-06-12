@@ -12,7 +12,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.1-BETA"
+version = "1.0.2-BETA"
 
 repositories {
     mavenCentral()

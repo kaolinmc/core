@@ -109,8 +109,11 @@ public class DefaultMixinSubsystem(
     override fun transformClass(name: String, node: ClassNode?): ClassNode? {
         val reference = ClassReference(name)
 
-        val preprocessed = this@DefaultMixinSubsystem.preprocessed[reference]
-        if (preprocessed != null) return preprocessed
+        // TODO I took this out because in the case of fabric-ext loading mixins after extension
+        //    initialization, this means anything transformed by a extframework mixin isnt
+        //    retransformed by fabric.
+//        val preprocessed = this@DefaultMixinSubsystem.preprocessed[reference]
+//        if (preprocessed != null) return preprocessed
 
         return if (node != null) {
             engine.transform(node)

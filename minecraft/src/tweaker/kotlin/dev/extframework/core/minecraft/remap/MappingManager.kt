@@ -1,18 +1,17 @@
 package dev.extframework.core.minecraft.remap
 
-import dev.extframework.archive.mapper.MappingsProvider
 import dev.extframework.archive.mapper.findShortest
 import dev.extframework.archive.mapper.newMappingsGraph
 import dev.extframework.common.util.LazyMap
 import dev.extframework.core.minecraft.api.MappingNamespace
+import dev.extframework.core.minecraft.environment.mappingProvidersAttrKey
+import dev.extframework.core.minecraft.environment.mappingTargetAttrKey
 import dev.extframework.tooling.api.environment.ExtensionEnvironment
 import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute
 import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute.Key
-import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
 
 public class MappingManager(
-    private val mappingProviders: MutableObjectSetAttribute<MappingsProvider>,
-    private val target: MappingNamespace,
+    private val environment: ExtensionEnvironment,
     private val strict: Boolean = true,
     private val mcVersion: String
 ) : Attribute {
@@ -20,7 +19,7 @@ public class MappingManager(
 
     private val cache = LazyMap<Pair<MappingNamespace, MappingNamespace>, MappingContext> {
         MappingContext(
-            newMappingsGraph(mappingProviders.toList(), strict).findShortest(
+            newMappingsGraph(environment[mappingProvidersAttrKey].toList(), strict).findShortest(
                 it.first.identifier,
                 it.second.identifier,
             ).forIdentifier(mcVersion),
@@ -31,7 +30,7 @@ public class MappingManager(
     }
 
     public operator fun get(source: MappingNamespace): MappingContext {
-        return getTo(source, target)
+        return getTo(source, environment[mappingTargetAttrKey].value)
     }
 
     public fun getTo(source: MappingNamespace, target: MappingNamespace): MappingContext {

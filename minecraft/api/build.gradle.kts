@@ -6,7 +6,7 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.1-BETA"
+version = "1.0.2-BETA"
 
 dependencies {
     implementation(project(":app:app-api"))

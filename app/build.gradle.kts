@@ -13,7 +13,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.1-BETA"
+version = "1.0.2-BETA"
 
 repositories {
     mavenLocal()
@@ -39,6 +39,14 @@ extension {
                 commonUtil()
                 objectContainer()
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            }
+            gradle {
+                entrypointClass = "dev.extframework.core.app.AppGradleEntrypoint"
+                dependencies {
+                    implementation(gradleApi())
+                    toolingApi()
+                    implementation("dev.extframework:gradle-api:1.0.3-BETA")
+                }
             }
         }
     }

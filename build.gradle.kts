@@ -1,11 +1,9 @@
 import dev.extframework.gradle.common.extFramework
-import dev.extframework.gradle.publish.ExtensionPublication
-import kotlin.jvm.java
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("dev.extframework.common") version "1.0.53"
-    id("dev.extframework") version "1.3.3"
+    id("dev.extframework.common") version "1.0.56"
+    id("dev.extframework") version "1.3.5"
 }
 
 val publishAll by tasks.registering {
@@ -59,6 +57,7 @@ allprojects {
     repositories {
         mavenCentral()
         extFramework()
+        mavenLocal()
     }
 
     dependencies {}

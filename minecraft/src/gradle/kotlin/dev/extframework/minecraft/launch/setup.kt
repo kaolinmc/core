@@ -74,7 +74,7 @@ public fun setupMinecraft(
     val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    val versionsPath = path resolve "versions"
+    val versionsPath = path resolve "versions" resolve version
     val manifestPath = versionsPath resolve "$version.json"
     if (manifestPath.make()) {
         val manifest = loadVersionManifest().find(version)

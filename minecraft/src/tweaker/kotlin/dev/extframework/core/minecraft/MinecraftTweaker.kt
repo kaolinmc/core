@@ -1,29 +1,15 @@
 package dev.extframework.core.minecraft
 
-import com.durganmcbroom.artifact.resolver.Artifact
 import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.async.AsyncJob
 import com.durganmcbroom.jobs.job
-import com.durganmcbroom.resources.LocalResource
-import com.durganmcbroom.resources.toResource
-import dev.extframework.boot.archive.ArchiveNodeResolver
-import dev.extframework.boot.archive.CacheHelper
-import dev.extframework.boot.archive.IArchive
-import dev.extframework.boot.archive.withResource
-import dev.extframework.boot.monad.Tagged
-import dev.extframework.boot.monad.Tree
 import dev.extframework.common.util.resolve
-import dev.extframework.core.app.TargetArtifactMetadata
-import dev.extframework.core.app.TargetDescriptor
 import dev.extframework.core.app.TargetLinker
-import dev.extframework.core.app.TargetLinkerResolver
 import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.instrument.InstrumentedApplicationTarget
 import dev.extframework.core.instrument.instrumentAgentsAttrKey
 import dev.extframework.core.minecraft.api.MinecraftAppApi
 import dev.extframework.core.minecraft.environment.mappingProvidersAttrKey
 import dev.extframework.core.minecraft.environment.mappingTargetAttrKey
-import dev.extframework.core.minecraft.environment.minecraft
 import dev.extframework.core.minecraft.environment.remappersAttrKey
 import dev.extframework.core.minecraft.internal.MojangMappingProvider
 import dev.extframework.core.minecraft.internal.RootRemapper
@@ -75,12 +61,10 @@ public class MinecraftTweaker : EnvironmentTweaker {
             environment[ExtensionLoader].extensionResolver,
             environment[ExtensionLoader].graph,
             environment.name,
-//            environment.archiveGraph,
         )
 
         environment += MappingManager(
-            environment[mappingProvidersAttrKey],
-            environment[mappingTargetAttrKey].value,
+            environment,
             true,
             (mcApp.delegate as MinecraftAppApi).version
         )

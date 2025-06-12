@@ -125,13 +125,14 @@ public class MinecraftEnvironmentConfigurator(
         val loader = environment[ExtensionLoader]
 
         for (handler in minecraftPartitions) {
+            val partitionRequest = PartitionArtifactRequest(
+                environment.extension.model.descriptor.partition(
+                    handler.name,
+                    environment.name
+                )
+            )
             val dependencies = loader.graph.cache(
-                PartitionArtifactRequest(
-                    environment.extension.model.descriptor.partition(
-                        handler.name,
-                        loader.rootEnvironment.name
-                    )
-                ),
+                partitionRequest,
                 helper.repository,
                 loader.extensionResolver.partitionResolver
             )().merge()
@@ -151,6 +152,13 @@ public class MinecraftEnvironmentConfigurator(
                 handler,
                 dependencies
             )
+
+            // ------ Sources ------
+            environment.extension.sourcesGraph.cache(
+                partitionRequest,
+                helper.repository,
+                environment.extension.partitionSourceResolver
+            )().merge().parents.flatMap { it.toList() }
         }
 
     }

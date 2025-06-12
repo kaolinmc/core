@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "dev.extframework.core"
-version = "1.0.3-BETA"
+version = "1.0.4-BETA"
 
 repositories {
     mavenLocal()
@@ -27,7 +27,7 @@ extension {
     metadata {
         name = "Minecraft core"
         app = "minecraft"
-        developers = listOf("durganmcbroom")
+        developers = listOf("extframework")
         description = "Adds Minecraft support to the extframework ecosystem"
     }
     partitions {
@@ -62,7 +62,7 @@ extension {
                 jobs()
                 toolingApi()
                 artifactResolver()
-                implementation("dev.extframework:gradle-api:1.0.1-BETA")
+                implementation("dev.extframework:gradle-api:1.0.3-BETA")
                 archives()
                 archiveMapper(transform = true, proguard = true)
                 commonUtil()

@@ -26,7 +26,8 @@ internal class ClasspathApp(
     override val classpath: List<Path>,
     override val version: String,
     override val path: Path,
-    override val gameJar: Path
+    override val gameJar: Path,
+    override val mainClass: String
 ) : MinecraftAppApi() {
     override val gameDir: Path = path
 

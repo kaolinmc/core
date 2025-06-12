@@ -8,7 +8,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.1-BETA"
+version = "1.0.2-BETA"
 
 extension {
     model {
@@ -36,7 +36,7 @@ extension {
                 implementation(gradleApi())
                 jobs()
                 boot()
-                implementation("dev.extframework:gradle-api:1.0.1-BETA")
+                implementation("dev.extframework:gradle-api:1.0.3-BETA")
                 commonUtil()
                 objectContainer()
             }

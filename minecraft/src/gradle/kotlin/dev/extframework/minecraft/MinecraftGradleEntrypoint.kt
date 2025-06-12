@@ -116,7 +116,8 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
                 listOf(metadata.clientJar) + metadata.libraries,
                 metadata.version,
                 getMinecraftDir(),
-                metadata.clientJar
+                metadata.clientJar,
+                metadata.mainClass
             )
         }
     }
@@ -127,6 +128,7 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
         override val gameJar: Path = gameDir resolve "game.jar"
         override val classpath: List<Path> = listOf()
         override val version: String = "not specified"
+        override val mainClass: String = ""
         override val path: Path = gameDir
 
         init {
@@ -156,7 +158,8 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
         override val classpath: List<Path>,
         override val version: String,
         override val path: Path,
-        override val gameJar: Path
+        override val gameJar: Path,
+        override val mainClass: String
     ) : MinecraftAppApi() {
         override val gameDir: Path = path
 

@@ -49,7 +49,8 @@ public fun main(args: Array<String>) {
                 launchContext.classpath,
                 launchContext.version,
                 getMinecraftDir(),
-                launchContext.gameJar
+                launchContext.gameJar,
+                launchContext.mainClass
             )
 
             environment += classpathApp

@@ -25,13 +25,14 @@ public class MainGradlePlugin : GradleEntrypoint {
                 if (main != null) {
                     val loader = environment.extension.loader
 
+                    val partitionRequest = PartitionArtifactRequest(
+                        environment.extension.model.descriptor.partition(
+                            "main",
+                            environment.extension.defaultEnvironment.name
+                        )
+                    )
                     val dependencies = loader.graph.cache(
-                        PartitionArtifactRequest(
-                            environment.extension.model.descriptor.partition(
-                                "main",
-                                environment.extension.defaultEnvironment.name
-                            )
-                        ),
+                        partitionRequest,
                         helper.repository,
                         loader.extensionResolver.partitionResolver
                     )().merge()
@@ -42,6 +43,13 @@ public class MainGradlePlugin : GradleEntrypoint {
                         main,
                         dependencies
                     )
+
+                    // ------ Sources ------
+                    environment.extension.sourcesGraph.cache(
+                        partitionRequest,
+                        helper.repository,
+                        environment.extension.partitionSourceResolver
+                    )().merge().parents.flatMap { it.toList() }
                 }
             }
         })

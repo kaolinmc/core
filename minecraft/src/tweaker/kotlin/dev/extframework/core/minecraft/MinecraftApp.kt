@@ -70,6 +70,8 @@ public class MinecraftApp internal constructor(
     override val path: Path by delegate::path
     override val gameDir: Path by delegate::gameDir
     override val version: String by delegate::version
+    // We specifically dont map this value
+    override val mainClass: String = delegate.mainClass
 
     override var gameJar: Path by lateInit(::setup)
         private set
@@ -127,7 +129,7 @@ public class MinecraftApp internal constructor(
                     .forIdentifier(delegate.node.descriptor.version)
             }
 
-            info("Remapping Minecraft from: '$source' to '${destination.value}'. This may take a second.")
+            info("Remapping Minecraft $version from: '$source' to '${destination.value}'. This may take a second.")
             val remappedJars = delegate.classpath.mapNotNull { t ->
                 val name = UUID.randomUUID().toString() + ".jar"
                 val isGame = t == delegate.gameJar

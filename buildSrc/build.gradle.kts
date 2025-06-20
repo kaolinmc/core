@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
     resourceApi()
     commonUtil()
     archives()

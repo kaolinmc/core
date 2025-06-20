@@ -1,12 +1,9 @@
 package dev.extframework.minecraft.launch
 
-import com.durganmcbroom.jobs.JobName
-import com.durganmcbroom.jobs.async.asyncJob
-import com.durganmcbroom.jobs.async.mapAsync
-import com.durganmcbroom.jobs.logging.info
 import com.durganmcbroom.resources.RemoteResource
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.extframework.boot.util.basicObjectMapper
+import dev.extframework.boot.util.mapAsync
 import dev.extframework.common.util.copyTo
 import dev.extframework.common.util.make
 import dev.extframework.common.util.resolve
@@ -17,27 +14,27 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.delay
 import java.net.URL
 import java.nio.file.Path
+import java.util.logging.Logger
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
 
 internal const val MINECRAFT_RESOURCES_URL: String = "https://resources.download.minecraft.net"
 
-internal fun downloadAssets(
+internal suspend fun downloadAssets(
     metadata: LaunchMetadata,
     assetsObjectsPath: Path,
     assetIndexCachePath: Path,
-) = asyncJob(JobName("Download Minecraft assets")) {
+    logger: Logger
+) {
     if (assetIndexCachePath.make()) {
-        val assetIndexCacheResource = metadata.assetIndex().merge()
+        val assetIndexCacheResource = metadata.assetIndex().getOrThrow()
 
         assetIndexCacheResource copyTo assetIndexCachePath
     }
 
     val objects = basicObjectMapper.readValue<AssetIndex>(assetIndexCachePath.toFile()).objects
     val totalSize = objects.values.sumOf { it.size }
-
-    info("Starting assets download")
 
     var bytesDownloaded = 0L
 
@@ -84,7 +81,7 @@ internal fun downloadAssets(
 
                         bytesDownloaded += asset.size
 
-                        info(
+                        logger.info(
                             "Downloaded asset: '$name', ${floor((bytesDownloaded.toDouble() / totalSize) * 100).toInt()}% done. ${
                                 convertBytesToPrettyString(
                                     bytesDownloaded

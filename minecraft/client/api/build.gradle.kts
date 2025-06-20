@@ -1,5 +1,4 @@
 import dev.extframework.gradle.common.RepositoryType
-import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.common.extFramework
 import dev.extframework.gradle.common.toolingApi
 
@@ -8,7 +7,7 @@ plugins {
 }
 
 group = "dev.extframework.core"
-version = "1.0-BETA"
+version = "1.0.1-BETA"
 
 repositories {
     mavenCentral()
@@ -16,8 +15,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    toolingApi()
-    jobs()
+   implementation(toolingApi())
 }
 
 tasks.test {

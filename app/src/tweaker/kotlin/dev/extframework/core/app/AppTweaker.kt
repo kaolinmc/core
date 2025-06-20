@@ -1,7 +1,5 @@
 package dev.extframework.core.app
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
 import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.app.internal.internalExtraAppConfigAttrKey
 import dev.extframework.tooling.api.ExtensionLoader
@@ -11,7 +9,7 @@ import dev.extframework.tooling.api.tweaker.EnvironmentTweaker
 public class AppTweaker : EnvironmentTweaker {
     override fun tweak(
         environment: ExtensionEnvironment
-    ): Job<Unit> = job {
+    ) {
         // Target linker/resolver
         val linker = TargetLinker()
 

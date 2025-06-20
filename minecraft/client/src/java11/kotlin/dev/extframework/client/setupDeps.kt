@@ -4,7 +4,6 @@ package dev.extframework.client
 
 import dev.extframework.boot.archive.ArchiveGraph
 import dev.extframework.boot.archive.JpmResolutionProvider
-import dev.extframework.boot.audit.Auditors
 import dev.extframework.boot.dependency.DependencyTypeContainer
 import dev.extframework.boot.maven.MavenDependencyResolver
 import dev.extframework.boot.maven.MavenResolverProvider

@@ -1,6 +1,4 @@
 import dev.extframework.gradle.common.*
-import dev.extframework.gradle.common.dm.artifactResolver
-import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.publish.ExtensionPublication
 import kotlin.jvm.java
 
@@ -9,7 +7,7 @@ plugins {
 }
 
 group = "dev.extframework.core"
-version = "1.0.4-BETA"
+version = "1.0.5-BETA"
 
 repositories {
     mavenLocal()
@@ -38,16 +36,18 @@ extension {
                 implementation(project("client:client-api"))
                 implementation(project(":app:app-api"))
                 implementation(project(":entrypoint"))
-                launcherMetaHandler()
-                boot()
-                jobs()
-                toolingApi()
-                artifactResolver()
-                archives()
-                archiveMapper(transform = true, proguard = true)
-                commonUtil()
-                objectContainer()
-                mixin(version = "1.0.2-SNAPSHOT")
+
+                implementation(launcherMetaHandler())
+                implementation(boot())
+                implementation(toolingApi())
+                implementation(artifactResolver())
+                implementation(archives())
+                implementation(archiveMapper())
+                implementation(archiveMapperProguard())
+                implementation(archiveMapperTransform())
+                implementation(commonUtil())
+                implementation(objectContainer())
+                implementation(mixin())
             }
         }
 
@@ -57,18 +57,21 @@ extension {
                 implementation(project("client:client-api"))
                 implementation(project("minecraft-api"))
                 implementation(project(":app:app-api"))
+
                 implementation(gradleApi())
-                boot()
-                jobs()
-                toolingApi()
-                artifactResolver()
-                implementation("dev.extframework:gradle-api:1.0.3-BETA")
-                archives()
-                archiveMapper(transform = true, proguard = true)
-                commonUtil()
-                objectContainer()
-                mixin(version = "1.0.2-SNAPSHOT")
-                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
+                implementation(boot())
+                implementation(toolingApi())
+                implementation(artifactResolver())
+                implementation("dev.extframework:gradle-api:1.1-BETA")
+                implementation(archives())
+                implementation(archiveMapper())
+                implementation(archiveMapperTransform())
+                implementation(archiveMapperProguard())
+                implementation(commonUtil())
+                implementation(objectContainer())
+                implementation(mixin())
+
+                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
             }
         }
     }

@@ -1,8 +1,5 @@
 package dev.extframework.minecraft
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.logging.warning
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.extframework.archives.ArchiveReference
 import dev.extframework.archives.Archives
@@ -33,21 +30,21 @@ public class MinecraftEnvironmentConfigurator(
     private val minecraftUnawareAttrKey: ValueAttribute.Key<Unit>,
     private val minecraftAwareAttrKey: ValueAttribute.Key<Unit>
 ) : BuildEnvironmentConfigurator {
-    override fun configure(
+    override suspend fun configure(
         environment: BuildEnvironment,
         helper: BuildEnvironmentConfigurator.Helper
-    ): Job<Unit> = job {
+    ) {
         if (environment.contains(minecraftAwareAttrKey)) {
-            configureAwareEnvironment(environment, helper)().merge()
+            configureAwareEnvironment(environment, helper)
         } else if (environment.contains(minecraftUnawareAttrKey)) {
-            configureUnawareEnvironment(environment, helper)().merge()
+            configureUnawareEnvironment(environment, helper)
         }
     }
 
-    private fun configureUnawareEnvironment(
+    private suspend fun configureUnawareEnvironment(
         environment: BuildEnvironment,
         helper: BuildEnvironmentConfigurator.Helper
-    ) = job {
+    ) {
         // Setting up minecraft partitions
         val minecraftPartitions = environment.extension.partitions
             .filterIsInstance<MinecraftPartitionHandler>()
@@ -67,7 +64,7 @@ public class MinecraftEnvironmentConfigurator(
                 ),
                 helper.repository,
                 loader.extensionResolver.partitionResolver
-            )().merge()
+            )
                 .parents
                 .flatMap { it.toList() }
 
@@ -78,15 +75,15 @@ public class MinecraftEnvironmentConfigurator(
         }
     }
 
-    private fun configureAwareEnvironment(
+    private suspend fun configureAwareEnvironment(
         environment: BuildEnvironment,
         helper: BuildEnvironmentConfigurator.Helper
-    ) = job {
+    )  {
         val instrumentedApp =
-            environment.find(ApplicationTarget) as? InstrumentedApplicationTarget ?: return@job
-        val minecraftApp = instrumentedApp.delegate as? MinecraftApp ?: return@job
+            environment.find(ApplicationTarget) as? InstrumentedApplicationTarget ?: return
+        val minecraftApp = instrumentedApp.delegate as? MinecraftApp ?: return
 
-        minecraftApp.setup()().merge()
+        minecraftApp.setup()
 
         // Minecraft transformation / fingerprinting
         val minecraftBuildPath = environment[minecraftBuildPathAttrKey].value
@@ -135,7 +132,7 @@ public class MinecraftEnvironmentConfigurator(
                 partitionRequest,
                 helper.repository,
                 loader.extensionResolver.partitionResolver
-            )().merge()
+            )
                 .parents
                 .flatMap { it.toList() }
 
@@ -158,7 +155,7 @@ public class MinecraftEnvironmentConfigurator(
                 partitionRequest,
                 helper.repository,
                 environment.extension.partitionSourceResolver
-            )().merge().parents.flatMap { it.toList() }
+            ).parents.flatMap { it.toList() }
         }
 
     }

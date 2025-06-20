@@ -1,8 +1,5 @@
 package dev.extframework.core.minecraft
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.logging.info
 import dev.extframework.archive.mapper.ArchiveMapping
 import dev.extframework.archive.mapper.findShortest
 import dev.extframework.archive.mapper.newMappingsGraph
@@ -14,15 +11,15 @@ import dev.extframework.archives.zip.ZipFinder
 import dev.extframework.archives.zip.classLoaderToArchive
 import dev.extframework.boot.archive.ArchiveAccessTree
 import dev.extframework.boot.archive.ClassLoadedArchiveNode
+import dev.extframework.boot.getLogger
 import dev.extframework.boot.loader.*
 import dev.extframework.common.util.make
 import dev.extframework.common.util.resolve
 import dev.extframework.core.app.TargetLinker
 import dev.extframework.core.app.api.ApplicationDescriptor
-import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.instrument.InstrumentedApplicationTarget
-import dev.extframework.core.instrument.internal.InstrumentedAppImpl
 import dev.extframework.core.instrument.instrumentAgentsAttrKey
+import dev.extframework.core.instrument.internal.InstrumentedAppImpl
 import dev.extframework.core.minecraft.api.MinecraftAppApi
 import dev.extframework.core.minecraft.environment.mappingProvidersAttrKey
 import dev.extframework.core.minecraft.environment.mappingTargetAttrKey
@@ -43,7 +40,7 @@ import kotlin.reflect.KProperty
 internal fun MinecraftApp(
     instrumentedApp: InstrumentedApplicationTarget,
     environment: ExtensionEnvironment
-): Job<InstrumentedAppImpl> = job {
+): InstrumentedAppImpl {
     val delegate = instrumentedApp.delegate
     check(delegate is MinecraftAppApi) {
         "Invalid environment. The application target should be an instance of '${MinecraftAppApi::class.qualifiedName}'."
@@ -54,7 +51,7 @@ internal fun MinecraftApp(
         delegate,
     )
 
-    InstrumentedAppImpl(
+    return InstrumentedAppImpl(
         mcApp,
         environment[TargetLinker],
         environment[instrumentAgentsAttrKey]
@@ -65,6 +62,7 @@ public class MinecraftApp internal constructor(
     private val environment: ExtensionEnvironment,
     public val delegate: MinecraftAppApi,
 ) : MinecraftAppApi() {
+    private val logger = getLogger()
     private val wrkDir = environment[wrkDirAttrKey]
 
     override val path: Path by delegate::path
@@ -101,8 +99,8 @@ public class MinecraftApp internal constructor(
     public var setup: Boolean = false
         private set
 
-    public fun setup(): Job<Unit> = job {
-        if (setup) return@job
+    public fun setup() {
+        if (setup) return
 
         val source = MojangMappingProvider.Companion.OBF_TYPE
         val destination = environment[mappingTargetAttrKey]
@@ -117,7 +115,7 @@ public class MinecraftApp internal constructor(
             internalNode.delegateHandle = delegate.node.handle!!
             setup = true
 
-            return@job
+            return
         }
 
         var gameJar = delegate.gameJar
@@ -129,7 +127,7 @@ public class MinecraftApp internal constructor(
                     .forIdentifier(delegate.node.descriptor.version)
             }
 
-            info("Remapping Minecraft $version from: '$source' to '${destination.value}'. This may take a second.")
+            logger.info("Remapping Minecraft $version from: '$source' to '${destination.value}'. This may take a second.")
             val remappedJars = delegate.classpath.mapNotNull { t ->
                 val name = UUID.randomUUID().toString() + ".jar"
                 val isGame = t == delegate.gameJar

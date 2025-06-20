@@ -1,6 +1,4 @@
 import dev.extframework.gradle.common.boot
-import dev.extframework.gradle.common.dm.artifactResolver
-import dev.extframework.gradle.common.dm.resourceApi
 import dev.extframework.gradle.common.extLoader
 import dev.extframework.gradle.common.objectContainer
 import dev.extframework.gradle.common.toolingApi
@@ -18,11 +16,11 @@ dependencies {
     implementation(project(":instrument"))
     implementation(project(":app"))
     implementation(project(":app:app-api"))
-    extLoader()
-    artifactResolver()
-    objectContainer()
+    implementation(extLoader())
+//    implementation(artifactResolver())
+    implementation(objectContainer())
     implementation(project(":minecraft:minecraft-api"))
-    resourceApi()
+//    implementation(resourceApi())
 
     testImplementation(kotlin("test"))
 }

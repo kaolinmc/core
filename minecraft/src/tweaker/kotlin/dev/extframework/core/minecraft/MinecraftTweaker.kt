@@ -1,7 +1,5 @@
 package dev.extframework.core.minecraft
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
 import dev.extframework.common.util.resolve
 import dev.extframework.core.app.TargetLinker
 import dev.extframework.core.app.api.ApplicationTarget
@@ -24,7 +22,7 @@ import dev.extframework.tooling.api.tweaker.EnvironmentTweaker
 public class MinecraftTweaker : EnvironmentTweaker {
     override fun tweak(
         environment: ExtensionEnvironment
-    ): Job<Unit> = job {
+    ) {
         if (!environment.contains(mappingTargetAttrKey)) environment.set(
             ValueAttribute(
                 MojangMappingProvider.OBF_TYPE,
@@ -45,7 +43,7 @@ public class MinecraftTweaker : EnvironmentTweaker {
             environment[ApplicationTarget] as? InstrumentedApplicationTarget
                 ?: throw Exception("Illegal environment, the application must be instrumented. (Something is wrong in the extension loading process)"),
             environment
-        )().merge()
+        )
 
         environment += mcApp
 

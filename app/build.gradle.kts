@@ -1,19 +1,11 @@
-import dev.extframework.gradle.common.archives
-import dev.extframework.gradle.common.boot
-import dev.extframework.gradle.common.commonUtil
-import dev.extframework.gradle.common.dm.artifactResolver
-import dev.extframework.gradle.common.dm.jobs
-import dev.extframework.gradle.common.extFramework
-import dev.extframework.gradle.common.objectContainer
-import dev.extframework.gradle.common.toolingApi
+import dev.extframework.gradle.common.*
 import dev.extframework.gradle.publish.ExtensionPublication
-import kotlin.jvm.java
 
 plugins {
     id("dev.extframework")
 }
 
-version = "1.0.2-BETA"
+version = "1.0.3-BETA"
 
 repositories {
     mavenLocal()
@@ -30,22 +22,22 @@ extension {
         tweaker {
             tweakerClass = "dev.extframework.core.app.AppTweaker"
             dependencies {
-                toolingApi()
                 implementation(project("app-api"))
-                boot()
-                jobs()
-                artifactResolver()
-                archives()
-                commonUtil()
-                objectContainer()
+
+                implementation(toolingApi())
+                implementation(boot())
+                implementation(artifactResolver())
+                implementation(archives())
+                implementation(commonUtil())
+                implementation(objectContainer())
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
             }
             gradle {
                 entrypointClass = "dev.extframework.core.app.AppGradleEntrypoint"
                 dependencies {
                     implementation(gradleApi())
-                    toolingApi()
-                    implementation("dev.extframework:gradle-api:1.0.3-BETA")
+                    implementation(toolingApi())
+                    implementation("dev.extframework:gradle-api:1.1-BETA")
                 }
             }
         }

@@ -1,5 +1,4 @@
 import dev.extframework.gradle.common.boot
-import dev.extframework.gradle.common.dm.artifactResolver
 import dev.extframework.gradle.common.extFramework
 import dev.extframework.gradle.common.toolingApi
 
@@ -8,12 +7,12 @@ plugins {
     id("dev.extframework.common")
 }
 
-version = "1.0.1-BETA"
+version = "1.0.2-BETA"
 
 dependencies {
-    boot()
-    artifactResolver(maven = true)
-    toolingApi()
+    implementation(boot())
+//    implementation(artifactResolver(maven = true))
+    implementation(toolingApi())
 }
 
 tasks.test {

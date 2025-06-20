@@ -6,12 +6,12 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.2-BETA"
+version = "1.0.3-BETA"
 
 dependencies {
     implementation(project(":app:app-api"))
     implementation(project(":capability"))
-    toolingApi()
+    implementation(toolingApi())
 }
 
 tasks.test {

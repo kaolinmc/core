@@ -1,10 +1,6 @@
 package dev.extframework.minecraft.launch
 
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenDescriptor
-import com.durganmcbroom.jobs.JobName
-import com.durganmcbroom.jobs.async.AsyncJob
-import com.durganmcbroom.jobs.async.asyncJob
-import com.durganmcbroom.jobs.async.mapAsync
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -13,6 +9,7 @@ import dev.extframework.archive.mapper.ArchiveMapping
 import dev.extframework.archive.mapper.transform.transformArchive
 import dev.extframework.archives.Archives
 import dev.extframework.archives.zip.ZipFinder
+import dev.extframework.boot.util.mapAsync
 import dev.extframework.common.util.copyTo
 import dev.extframework.common.util.make
 import dev.extframework.common.util.resolve
@@ -24,6 +21,7 @@ import kotlinx.coroutines.awaitAll
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.logging.Logger
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 
@@ -67,10 +65,11 @@ public fun remapMinecraft(
     return minecraftJarPath
 }
 
-public fun setupMinecraft(
+public suspend fun setupMinecraft(
     version: String,
     path: Path,
-): AsyncJob<MinecraftStartMetadata> = asyncJob(JobName("Setup Minecraft $version")) {
+    logger: Logger
+): MinecraftStartMetadata {
     val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
@@ -80,7 +79,7 @@ public fun setupMinecraft(
         val manifest = loadVersionManifest().find(version)
             ?: throw IllegalStateException("Failed to find minecraft version: '${version}'. Looked in: 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json'.")
 
-        manifest.metadata().merge() copyTo manifestPath
+        manifest.metadata().getOrThrow() copyTo manifestPath
     }
 
     val metadata = mapper.readValue<LaunchMetadata>(manifestPath.toFile())
@@ -88,7 +87,7 @@ public fun setupMinecraft(
     val clientPath = versionsPath resolve "$version.jar"
     if (clientPath.make()) {
         val mcJar = metadata.downloads[LaunchMetadataDownloadType.CLIENT]
-            ?.toResource()?.merge()
+            ?.toResource()?.getOrThrow()
             ?: throw IllegalArgumentException("Cant find client in launch metadata?")
 
         mcJar copyTo clientPath
@@ -111,7 +110,7 @@ public fun setupMinecraft(
                         ?: "temp${File.separator}${descriptor.name}-${descriptor.version}.jar")
 
                     if (jarPath.make())
-                        artifact.toResource().merge() copyTo jarPath
+                        artifact.toResource().getOrThrow() copyTo jarPath
 
                     jarPath
                 }.awaitAll()
@@ -145,9 +144,10 @@ public fun setupMinecraft(
         metadata = metadata,
         path resolve "assets" resolve "objects",
         path resolve "assets" resolve "indexes" resolve "${metadata.assetIndex.id}.json",
-    )().merge()
+        logger
+    )
 
-    MinecraftStartMetadata(
+   return MinecraftStartMetadata(
         version,
         clientPath,
         extractPath,

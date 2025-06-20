@@ -2,8 +2,6 @@
 
 package dev.extframework.dev.client
 
-import BootLoggerFactory
-import com.durganmcbroom.jobs.launch
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.extframework.boot.util.basicObjectMapper
 import dev.extframework.common.util.resolve
@@ -30,74 +28,72 @@ public fun main(args: Array<String>) {
 
     val launchContext = basicObjectMapper.readValue<LaunchContext>(context)
 
-    launch(BootLoggerFactory()) {
-        runBlocking {
-            val archiveGraph = setupArchiveGraph(getHomedir() resolve "archives")
-            addPackagedDependencies(archiveGraph, parsePackagedDependencies())
-            val dependencyTypes = setupDependencyTypes(archiveGraph)
+    runBlocking {
+        val archiveGraph = setupArchiveGraph(getHomedir() resolve "archives")
+        addPackagedDependencies(archiveGraph, parsePackagedDependencies())
+        val dependencyTypes = setupDependencyTypes(archiveGraph)
 
-            val registry: EnvironmentRegistry = ObjectContainerImpl()
+        val registry: EnvironmentRegistry = ObjectContainerImpl()
 
-            val environment = RootExtensionEnvironment(
-                "root",
-                getHomedir(),
-                dependencyTypes,
-            )
-            registry.register("root", environment)
+        val environment = RootExtensionEnvironment(
+            "root",
+            getHomedir(),
+            dependencyTypes,
+        )
+        registry.register("root", environment)
 
-            val classpathApp = ClasspathApp(
-                launchContext.classpath,
-                launchContext.version,
-                getMinecraftDir(),
-                launchContext.gameJar,
-                launchContext.mainClass
-            )
+        val classpathApp = ClasspathApp(
+            launchContext.classpath,
+            launchContext.version,
+            getMinecraftDir(),
+            launchContext.gameJar,
+            launchContext.mainClass
+        )
 
-            environment += classpathApp
+        environment += classpathApp
 
-            environment += ValueAttribute(
-                MappingNamespace.parse(launchContext.namespace),
+        environment += ValueAttribute(
+            MappingNamespace.parse(launchContext.namespace),
 
-                ValueAttribute.Key("mapping-target")
-            )
+            ValueAttribute.Key("mapping-target")
+        )
 
-            val loader = DefaultExtensionLoader(
-                ClientExtensionResolver(
-                    registry,
-                    "root"
-                ),
-                archiveGraph,
-                environment,
+        val loader = DefaultExtensionLoader(
+            ClientExtensionResolver(
                 registry,
-            )
+                "root"
+            ),
+            archiveGraph,
+            environment,
+            registry,
+        )
 
-            loader.cache(
-                mapOf(
-                    ExtensionDescriptor.parseDescriptor(launchContext.targetExtension) to ExtensionRepositorySettings.local(
-                        path = launchContext.repository,
-                    )
+        loader.cache(
+            mapOf(
+                ExtensionDescriptor.parseDescriptor(launchContext.targetExtension) to ExtensionRepositorySettings.local(
+                    path = launchContext.repository,
                 )
-            )().merge()
-
-            val loaded = loader.load(
-                listOf(ExtensionDescriptor.parseDescriptor(launchContext.targetExtension))
-            )().merge()
-
-            loader.tweak(loaded, environment)().merge()
-
-            environment[MinecraftExtensionInitializer].initialize(
-                loaded
-            )().merge()
-
-            val app = environment[ApplicationTarget].node.handle!!.classloader
-
-            val mainClass = app.loadClass(
-                launchContext.mainClass
             )
+        )
 
-            mainClass.getMethod("main", Array<String>::class.java)
-                .invoke(null, launchContext.gameArguments.toTypedArray())
-        }
+        val loaded = loader.load(
+            listOf(ExtensionDescriptor.parseDescriptor(launchContext.targetExtension))
+        )
+
+        loader.tweak(loaded, environment)
+
+        environment[MinecraftExtensionInitializer].initialize(
+            loaded
+        )
+
+        val app = environment[ApplicationTarget].node.handle!!.classloader
+
+        val mainClass = app.loadClass(
+            launchContext.mainClass
+        )
+
+        mainClass.getMethod("main", Array<String>::class.java)
+            .invoke(null, launchContext.gameArguments.toTypedArray())
     }
 }
 

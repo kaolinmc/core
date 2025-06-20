@@ -1,14 +1,11 @@
 import dev.extframework.gradle.common.*
-import dev.extframework.gradle.common.dm.artifactResolver
-import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.publish.ExtensionPublication
-import kotlin.jvm.java
 
 plugins {
     id("dev.extframework")
 }
 
-version = "1.0.2-BETA"
+version = "1.0.3-BETA"
 
 extension {
     model {
@@ -18,27 +15,27 @@ extension {
         tweaker {
             tweakerClass = "dev.extframework.core.main.MainPartitionTweaker"
             dependencies {
-                toolingApi()
                 implementation(project(":entrypoint"))
-                boot()
-                jobs()
-                artifactResolver()
-                archives()
-                commonUtil()
-                objectContainer()
+
+                implementation(toolingApi())
+                implementation(boot())
+                implementation(artifactResolver())
+                implementation(archives())
+                implementation(commonUtil())
+                implementation(objectContainer())
+
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
             }
         }
         gradle {
             entrypointClass = "dev.extframework.core.main.MainGradlePlugin"
             dependencies {
-                toolingApi()
+                implementation(toolingApi())
                 implementation(gradleApi())
-                jobs()
-                boot()
-                implementation("dev.extframework:gradle-api:1.0.3-BETA")
-                commonUtil()
-                objectContainer()
+                implementation(boot())
+                implementation("dev.extframework:gradle-api:1.1-BETA")
+                implementation(commonUtil())
+                implementation(objectContainer())
             }
         }
     }

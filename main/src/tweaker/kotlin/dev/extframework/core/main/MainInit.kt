@@ -1,9 +1,5 @@
 package dev.extframework.core.main
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.mapException
-import com.durganmcbroom.jobs.result
 import dev.extframework.boot.archive.ArchiveGraph
 import dev.extframework.tooling.api.exception.StructuredException
 import dev.extframework.tooling.api.extension.ExtensionNode
@@ -24,7 +20,7 @@ public class MainInit(
     private val initialized = ArrayList<ExtensionDescriptor>()
     // A map of our subsystems. Any or Object is included additionally as a reference to the default.
 
-    public fun init(nodes: List<ExtensionNode>): Job<Unit> = job {
+    public suspend fun init(nodes: List<ExtensionNode>) {
         val mainDescriptor = UberDescriptor("Main partitions")
         val request = UberArtifactRequest(
             mainDescriptor,
@@ -45,12 +41,12 @@ public class MainInit(
             request,
             UberRepositorySettings,
             UberResolver
-        )().merge()
+        )
 
         graph.get(
             mainDescriptor,
             UberResolver
-        )().merge()
+        )
 
         runMainInit(nodes)
     }
@@ -60,7 +56,7 @@ public class MainInit(
             .filter { initialized.add(it.descriptor) }
             .forEach { node ->
                 // Run init on main partitions
-                result {
+                try {
                     val mainPartition = graph.getNode(
                         node.descriptor.partition(
                             "main",
@@ -69,15 +65,15 @@ public class MainInit(
                     ) as? ExtensionPartitionContainer<MainPartitionNode, MainPartitionMetadata>
 
                     mainPartition?.node?.entrypoint?.init()
-                }.mapException {
-                    StructuredException(
+                } catch (e: Exception) {
+                    throw StructuredException(
                         ExtensionInitialization,
-                        cause = it,
-                        message = "Exception initializing extension"
+                        cause = e,
+                        description = "Exception initializing extension"
                     ) {
                         node.runtimeModel.descriptor.name asContext "Extension name"
                     }
-                }.getOrThrow()
+                }
 
             }
     }

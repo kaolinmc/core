@@ -1,7 +1,5 @@
 package dev.extframework.core.instrument
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
 import dev.extframework.core.app.TargetLinker
 import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.instrument.internal.InstrumentedAppImpl
@@ -10,7 +8,7 @@ import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
 import dev.extframework.tooling.api.tweaker.EnvironmentTweaker
 
 public class InstrumentTweaker : EnvironmentTweaker {
-    override fun tweak(environment: ExtensionEnvironment): Job<Unit> = job {
+    override fun tweak(environment: ExtensionEnvironment) {
         environment += MutableObjectSetAttribute(instrumentAgentsAttrKey)
 
         environment += InstrumentedAppImpl(

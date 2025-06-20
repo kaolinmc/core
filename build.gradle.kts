@@ -1,9 +1,21 @@
+import dev.extframework.gradle.common.artifactResolver
+import dev.extframework.gradle.common.artifactResolverMaven
+import dev.extframework.gradle.common.boot
 import dev.extframework.gradle.common.extFramework
+import dev.extframework.gradle.common.extLoader
+import dev.extframework.gradle.common.launcherMetaHandler
+import dev.extframework.gradle.common.mixin
+import dev.extframework.gradle.common.objectContainer
+import dev.extframework.gradle.common.toolingApi
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("dev.extframework.common") version "1.0.56"
-    id("dev.extframework") version "1.3.5"
+    id("dev.extframework.common") version "1.1"
+    id("dev.extframework") version "1.4"
+}
+
+tasks.wrapper {
+    gradleVersion = "8.14.2"
 }
 
 val publishAll by tasks.registering {
@@ -57,10 +69,7 @@ allprojects {
     repositories {
         mavenCentral()
         extFramework()
-        mavenLocal()
     }
-
-    dependencies {}
 
     kotlin {
         explicitApi()

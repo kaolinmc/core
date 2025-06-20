@@ -1,8 +1,7 @@
 import dev.extframework.gradle.common.archives
+import dev.extframework.gradle.common.artifactResolver
 import dev.extframework.gradle.common.boot
 import dev.extframework.gradle.common.commonUtil
-import dev.extframework.gradle.common.dm.artifactResolver
-import dev.extframework.gradle.common.dm.jobs
 import dev.extframework.gradle.common.objectContainer
 import dev.extframework.gradle.common.toolingApi
 import dev.extframework.gradle.publish.ExtensionPublication
@@ -12,7 +11,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.2-BETA"
+version = "1.0.3-BETA"
 
 repositories {
     mavenCentral()
@@ -26,15 +25,15 @@ extension {
         tweaker {
             tweakerClass = "dev.extframework.core.instrument.InstrumentTweaker"
             dependencies {
-                toolingApi()
-
                 implementation(project(":app:app-api"))
-                boot()
-                jobs()
-                artifactResolver()
-                archives()
-                commonUtil()
-                objectContainer()
+
+                implementation(toolingApi())
+                implementation(boot())
+                implementation(artifactResolver())
+                implementation(archives())
+                implementation(commonUtil())
+                implementation(objectContainer())
+
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("net.bytebuddy:byte-buddy-agent:1.17.1")
 

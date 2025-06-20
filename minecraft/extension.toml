@@ -1,4 +1,5 @@
 [repositories]
+local = true
 
 [parents]
 ":app" = { isBuild = true }

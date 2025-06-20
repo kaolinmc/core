@@ -1,11 +1,8 @@
 package dev.extframework.minecraft.task
 
-import BootLoggerFactory
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenDescriptor
-import com.durganmcbroom.jobs.async.AsyncJob
-import com.durganmcbroom.jobs.async.asyncJob
-import com.durganmcbroom.jobs.launch
+import dev.extframework.boot.getLogger
 import dev.extframework.boot.util.basicObjectMapper
 import dev.extframework.common.util.deleteAll
 import dev.extframework.common.util.make
@@ -57,7 +54,7 @@ public fun preDownloadClient(version: String): Path {
     return getHomedir() resolve "client-$version.jar"
 }
 
-public fun downloadClient(version: String): AsyncJob<Path> = asyncJob() {
+public fun downloadClient(version: String): Path {
     val outputPath = preDownloadClient(version)
 
     if (outputPath.make()) {
@@ -70,7 +67,7 @@ public fun downloadClient(version: String): AsyncJob<Path> = asyncJob() {
         }
     }
 
-    outputPath
+    return outputPath
 }
 
 public fun preCacheExtension(project: Project, ext: ExtframeworkExtension): Pair<ArtifactMetadata.Descriptor, String> {
@@ -96,74 +93,73 @@ public abstract class LaunchMinecraft : JavaExec() {
 
     @TaskAction
     @ExperimentalPathApi
-    override fun exec(): Unit = launch(BootLoggerFactory()) {
-        runBlocking {
-            val mapper = basicObjectMapper
+    override fun exec(): Unit = runBlocking {
+        val mapper = basicObjectMapper
 
-            val extframework = project.extensions.getByType(ExtframeworkExtension::class.java)
+        val extframework = project.extensions.getByType(ExtframeworkExtension::class.java)
 
-            val mcDir = getMinecraftDir()
-            val binDir = mcDir resolve "bin"
-            binDir.deleteAll()
+        val mcDir = getMinecraftDir()
+        val binDir = mcDir resolve "bin"
+        binDir.deleteAll()
 
-            val env = setupMinecraft(
-                mcVersion.get(),
-                mcDir
-            )().merge()
+        val env = setupMinecraft(
+            mcVersion.get(),
+            mcDir,
+            getLogger()
+        )
 
-            val path = downloadClient(CLIENT_VERSION)().merge()
-            val (desc, repo) = preCacheExtension(project, extframework)
+        val path = downloadClient(CLIENT_VERSION)
+        val (desc, repo) = preCacheExtension(project, extframework)
 
-            classpath(path)
-            workingDir(mcDir.toFile())
+        classpath(path)
+        workingDir(mcDir.toFile())
 
-            val mcVersion = mcVersion.get()
-            val extensionPath = extframework.project.layout.buildDirectory.get().asFile.toPath() resolve "extension"
+        val mcVersion = mcVersion.get()
+        val extensionPath = extframework.project.layout.buildDirectory.get().asFile.toPath() resolve "extension"
 
-            val values = mapOf(
-                "version" to mcVersion,
-                "version_name" to mcVersion,
-                "game_directory" to mcDir.toString(),
-                "assets_root" to env.assets.toString(),
-                "assets_index_name" to env.assetIndex,
-                "natives_directory" to env.nativesDir.toString(),
-                "classpath" to "~/nothing.jar"
-            ) + minecraftArguments.get()
+        val values = mapOf(
+            "version" to mcVersion,
+            "version_name" to mcVersion,
+            "game_directory" to mcDir.toString(),
+            "assets_root" to env.assets.toString(),
+            "assets_index_name" to env.assetIndex,
+            "natives_directory" to env.nativesDir.toString(),
+            "classpath" to "~/nothing.jar"
+        ) + minecraftArguments.get()
 
-            val processor = DefaultMetadataProcessor()
+        val processor = DefaultMetadataProcessor()
 
-            env.arguments.jvm.forEach { arg ->
-                val arg = processor.formatArg(values, arg) ?: return@forEach
+        env.arguments.jvm.forEach { arg ->
+            val arg = processor.formatArg(values, arg) ?: return@forEach
 
-                jvmArgs(arg)
+            jvmArgs(arg)
+        }
+
+        val args = env.arguments.game
+            .chunked(2)
+            .flatMap { (arg1, arg2) ->
+                val first: List<String> = processor.formatArg(values, arg1) ?: return@flatMap listOf()
+                val second: List<String> = processor.formatArg(values, arg2) ?: return@flatMap listOf()
+
+
+                first + second
             }
 
-            val args = env.arguments.game
-                .chunked(2)
-                .flatMap { (arg1, arg2) ->
-                    val first: List<String> = processor.formatArg(values, arg1) ?: return@flatMap listOf()
-                    val second: List<String> = processor.formatArg(values, arg2) ?: return@flatMap listOf()
+        val context = LaunchContext(
+            desc.name,
+            repo,
+            targetNamespace.get(),
+            extensionPath,
+            mcVersion,
+            env.mainClass,
+            listOf(env.clientJar) + env.libraries,
+            env.clientJar,
+            args
+        )
 
+        args(mapper.writeValueAsString(context))
 
-                    first + second
-                }
-
-            val context = LaunchContext(
-                desc.name,
-                repo,
-                targetNamespace.get(),
-                extensionPath,
-                mcVersion,
-                env.mainClass,
-                listOf(env.clientJar) + env.libraries,
-                env.clientJar,
-                args
-            )
-
-            args(mapper.writeValueAsString(context))
-
-            super.exec()
-        }
+        super.exec()
     }
 }
 

@@ -1,9 +1,5 @@
 package dev.extframework.core.minecraft
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.mapException
-import com.durganmcbroom.jobs.result
 import dev.extframework.boot.archive.ArchiveGraph
 import dev.extframework.boot.archive.ClassLoadedArchiveNode
 import dev.extframework.boot.loader.ArchiveClassProvider
@@ -38,8 +34,8 @@ public class McExtInitializer(
     private val graph: ArchiveGraph,
     private val environment: String
 ) : MinecraftExtensionInitializer {
-    override fun initialize(nodes: List<ExtensionNode>): Job<Unit> = job {
-        app.setup()().merge()
+    override suspend fun initialize(nodes: List<ExtensionNode>) {
+        app.setup()
 
         for (node in nodes) {
             val versions = node.runtimeModel.attributes["supportedVersions"]
@@ -53,7 +49,7 @@ public class McExtInitializer(
                     throw StructuredException(
                         MinecraftException.ExtensionDoesNotSupportThisVersion,
                         null,
-                        message = "This extension does not support the current minecraft version"
+                        description = "This extension does not support the current minecraft version"
                     ) {
                         node.descriptor asContext "Problematic Extension"
                         app.version asContext "Current Minecraft version"
@@ -89,12 +85,12 @@ public class McExtInitializer(
             request,
             UberRepositorySettings,
             UberResolver
-        )().merge()
+        )
 
         graph.get(
             mcDescriptor,
             UberResolver
-        )().merge()
+        )
 
         for (node in nodes) {
             // TODO all partitions?
@@ -106,10 +102,10 @@ public class McExtInitializer(
             instrumentationAgents
                 .filterIsInstance<MixinSubsystem>()
                 .onEach {
-                    it.register(MixinProcessContext(node, partitions))().merge()
+                    it.register(MixinProcessContext(node, partitions))
                 }
                 .forEach {
-                    it.runPreprocessors()().merge()
+                    it.runPreprocessors()
                 }
 
             // TODO this creates duplicates if two extensions rely on the same library.
@@ -134,22 +130,22 @@ public class McExtInitializer(
                 .forEach { container ->
                     val partNode = container.node as? MinecraftPartitionNode ?: return@forEach
 
-                    result {
+                    try {
                         partNode.entrypoint?.init()
-                    }.mapException {
-                        StructuredException(
+                    } catch (e: Exception) {
+                        throw StructuredException(
                             ExtensionInitialization,
-                            cause = it,
-                            message = "Exception initializing minecraft partition"
+                            cause = e,
+                            description = "Exception initializing minecraft partition"
                         ) {
                             node.runtimeModel.descriptor.name asContext "Extension name"
                             container.metadata.name asContext "Partition name"
                         }
-                    }.getOrThrow()
+                    }
                 }
 
         }
 
-        MainInit(extResolver, graph, environment).init(nodes)().merge()
+        MainInit(extResolver, graph, environment).init(nodes)
     }
 }

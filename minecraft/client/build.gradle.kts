@@ -1,7 +1,4 @@
 import dev.extframework.gradle.common.*
-import dev.extframework.gradle.common.dm.artifactResolver
-import dev.extframework.gradle.common.dm.jobs
-import dev.extframework.gradle.common.dm.resourceApi
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -17,7 +14,7 @@ plugins {
 }
 
 group = "dev.extframework"
-version = "1.0-BETA"
+version = "1.0.1-BETA"
 
 repositories {
     mavenLocal()
@@ -38,33 +35,32 @@ multiRelease {
 }
 
 dependencies {
-    boot()
-    extLoader()
-    toolingApi()
+    implementation(boot())
+    implementation(extLoader())
+    implementation(toolingApi())
 
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
-    jobs()
-    archives()
-    objectContainer()
-    artifactResolver(maven = true)
-    commonUtil()
+    implementation(archives())
+    implementation(objectContainer())
+    implementation(artifactResolver())
+    implementation(artifactResolverMaven())
+    implementation(commonUtil())
     implementation(project(":app:app-api"))
     implementation(project(":minecraft:minecraft-api"))// "dev.extframework.core:minecraft-api:1.0-BETA")
-    resourceApi(version = "1.2.1-SNAPSHOT")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
+    implementation(resourceApi())
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
     implementation(project("client-api"))
 
-    implementation("dev.extframework:boot:$BOOT_VERSION:jdk11")
-    implementation("dev.extframework:archives:$ARCHIVES_VERSION:jdk11")
+    "java11Implementation"("dev.extframework:boot:${rootProject.extensions.getByType<DependencyManagement>()["boot"]["version"]}:jdk11")
+    "java11Implementation"("dev.extframework:archives:${rootProject.extensions.getByType<DependencyManagement>()["archives"]["version"]}:jdk11")
 
 
-    "java11Implementation"("dev.extframework:boot:$BOOT_VERSION:jdk11")
-    boot(configurationName = "java11Implementation")
-    objectContainer(configurationName = "java11Implementation")
+    "java11Implementation"(boot())
+    "java11Implementation"(objectContainer())
 
 
     testImplementation(kotlin("test"))

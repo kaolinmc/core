@@ -1,10 +1,7 @@
 package dev.extframework.core.main
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
 import dev.extframework.boot.monad.toList
 import dev.extframework.gradle.api.*
-import dev.extframework.tooling.api.environment.ExtensionEnvironment
 import dev.extframework.tooling.api.extension.partition.artifact.PartitionArtifactRequest
 import dev.extframework.tooling.api.extension.partition.artifact.partition
 import org.gradle.api.Project
@@ -12,14 +9,14 @@ import org.gradle.api.Project
 public class MainGradlePlugin : GradleEntrypoint {
     override fun apply(project: Project) { }
 
-    override fun tweak(root: BuildEnvironment): Job<Unit> = job {
-        MainPartitionTweaker().tweak(root)().merge()
+    override fun tweak(root: BuildEnvironment) {
+        MainPartitionTweaker().tweak(root)
 
         root[environmentConfigurators].add(object : BuildEnvironmentConfigurator {
-            override fun configure(
+            override suspend fun configure(
                 environment: BuildEnvironment,
                 helper: BuildEnvironmentConfigurator.Helper
-            ): Job<Unit> = job {
+            ) {
                 val main = environment.extension.partitions.findByName("main")
 
                 if (main != null) {
@@ -35,7 +32,7 @@ public class MainGradlePlugin : GradleEntrypoint {
                         partitionRequest,
                         helper.repository,
                         loader.extensionResolver.partitionResolver
-                    )().merge()
+                    )
                         .parents
                         .flatMap { it.toList() }
 
@@ -49,7 +46,7 @@ public class MainGradlePlugin : GradleEntrypoint {
                         partitionRequest,
                         helper.repository,
                         environment.extension.partitionSourceResolver
-                    )().merge().parents.flatMap { it.toList() }
+                    ).parents.flatMap { it.toList() }
                 }
             }
         })

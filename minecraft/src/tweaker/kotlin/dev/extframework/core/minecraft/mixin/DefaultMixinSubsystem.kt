@@ -1,8 +1,5 @@
 package dev.extframework.core.minecraft.mixin
 
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
-import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.instrument.InstrumentedApplicationTarget
 import dev.extframework.core.minecraft.internal.remap.MappingAwareClassTag
 import dev.extframework.core.minecraft.internal.remap.MixinMappingManager
@@ -27,7 +24,7 @@ public class DefaultMixinSubsystem(
     private val needPreprocessing = HashSet<ClassReference>()
     private val preprocessed = HashMap<ClassReference, ClassNode>()
 
-    override fun unregister(ctx: MixinProcessContext): Job<Unit> = job {
+    override fun unregister(ctx: MixinProcessContext) {
         val needReloading = resolveMixins(ctx)
             .flatMap { (mixinNode, metadata) ->
                 engine.unregisterMixin(
@@ -43,7 +40,7 @@ public class DefaultMixinSubsystem(
         }
     }
 
-    override fun register(ctx: MixinProcessContext): Job<Boolean> = job {
+    override fun register(ctx: MixinProcessContext): Boolean {
         resolveMixins(ctx)
             .forEach { (it, metadata) ->
                 val targets = engine.registerMixin(
@@ -53,7 +50,7 @@ public class DefaultMixinSubsystem(
                 needPreprocessing.addAll(targets)
             }
 
-        true
+        return true
     }
 
     private fun resolveMixins(
@@ -80,7 +77,7 @@ public class DefaultMixinSubsystem(
             }
     }
 
-    override fun runPreprocessors(): Job<Unit> = job {
+    override fun runPreprocessors() {
         for (reference in needPreprocessing.toSet()) {
             needPreprocessing.remove(reference)
 

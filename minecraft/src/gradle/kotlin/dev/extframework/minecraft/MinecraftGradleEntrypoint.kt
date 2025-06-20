@@ -1,19 +1,17 @@
 package dev.extframework.minecraft
 
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.job
 import dev.extframework.archives.ArchiveHandle
 import dev.extframework.archives.zip.ZipFinder
 import dev.extframework.archives.zip.classLoaderToArchive
 import dev.extframework.boot.archive.ArchiveAccessTree
 import dev.extframework.boot.archive.ArchiveTarget
 import dev.extframework.boot.archive.ClassLoadedArchiveNode
+import dev.extframework.boot.getLogger
 import dev.extframework.boot.loader.*
 import dev.extframework.common.util.make
 import dev.extframework.common.util.resolve
 import dev.extframework.core.app.api.ApplicationDescriptor
-import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.minecraft.api.MappingNamespace
 import dev.extframework.core.minecraft.api.MinecraftAppApi
 import dev.extframework.core.minecraft.environment.mappingTargetAttrKey
@@ -28,7 +26,6 @@ import dev.extframework.tooling.api.environment.ValueAttribute
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.Project
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
 
 public class MinecraftGradleEntrypoint : GradleEntrypoint {
@@ -36,13 +33,15 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
     private val minecraftUnawareAttrKey = ValueAttribute.Key<Unit>("minecraft-unaware")
     private val minecraftAwareAttrKey = ValueAttribute.Key<Unit>("minecraft-aware")
 
+    private val logger = getLogger()
+
     override fun apply(project: Project) {}
 
-    override fun tweak(root: BuildEnvironment): Job<Unit> = job {
+    override fun tweak(root: BuildEnvironment) {
         root[environmentEmitters].add(object : EnvironmentEmitter {
             override fun emit(
                 extension: ExtframeworkExtension
-            ): Job<List<ExtensionEnvironment>> = job {
+            ): List<ExtensionEnvironment> {
                 val neededEnvironments = extension.partitions
                     .filterIsInstance<MinecraftPartitionHandler>()
                     .mapNotNullTo(HashSet()) {
@@ -52,11 +51,11 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
 
                 val root by extension::defaultEnvironment
 
-                neededEnvironments.map {
+                return neededEnvironments.map {
                     root.compose("Minecraft ${it.first} mapped to ${it.second.identifier}") to it
                 }.onEach { (env, metadata) ->
                     val (version, mappings) = metadata
-                    setupAware(env, version, mappings, extension)().merge()
+                    setupAware(env, version, mappings, extension)
                 }.map { it.first } + root.compose("Minecraft unaware").also {
                     setupUnaware(it, extension.worker.dataDir resolve "minecraft")
                 }
@@ -89,7 +88,7 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
         version: String,
         mappings: MappingNamespace,
         extension: ExtframeworkExtension
-    ): Job<Unit> = job {
+    ) {
         runBlocking {
             val minecraftPath =
                 extension.worker.dataDir resolve
@@ -104,8 +103,9 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
 
             val metadata = setupMinecraft(
                 version,
-                getMinecraftDir()
-            )().merge()
+                getMinecraftDir(),
+                logger
+            )
 
             environment += ValueAttribute(
                 mappings,

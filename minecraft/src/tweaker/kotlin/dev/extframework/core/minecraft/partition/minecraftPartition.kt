@@ -4,11 +4,6 @@ package dev.extframework.core.minecraft.partition
 //import dev.extframework.extension.core.feature.findImplementedFeatures
 //import dev.extframework.extension.core.feature.implementsFeatures
 import com.durganmcbroom.artifact.resolver.Artifact
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.async.AsyncJob
-import com.durganmcbroom.jobs.async.asyncJob
-import com.durganmcbroom.jobs.async.mapAsync
-import com.durganmcbroom.jobs.job
 import dev.extframework.archive.mapper.transform.ClassInheritancePath
 import dev.extframework.archive.mapper.transform.ClassInheritanceTree
 import dev.extframework.archive.mapper.transform.mapClassName
@@ -22,8 +17,10 @@ import dev.extframework.boot.loader.ArchiveClassProvider
 import dev.extframework.boot.loader.ArchiveSourceProvider
 import dev.extframework.boot.loader.ClassProvider
 import dev.extframework.boot.loader.DelegatingClassProvider
+import dev.extframework.boot.monad.Either
 import dev.extframework.boot.monad.Tagged
 import dev.extframework.boot.monad.Tree
+import dev.extframework.boot.util.mapAsync
 import dev.extframework.common.util.LazyMap
 import dev.extframework.common.util.runCatching
 import dev.extframework.core.app.TargetArtifactRequest
@@ -108,46 +105,41 @@ public class MinecraftPartitionLoader(
         return appInheritanceTree!!
     }
 
-    override fun cache(
-        artifact: Artifact<PartitionArtifactMetadata>,
+    override suspend fun cache(
+        metadata: PartitionArtifactMetadata,
+        parents: List<Tree<Either<PartitionArtifactMetadata, TaggedIArchive>>>,
         helper: PartitionCacheHelper
-    ): AsyncJob<Tree<Tagged<IArchive<*>, ArchiveNodeResolver<*, *, *, *, *>>>> = asyncJob {
+    ): Tree<Tagged<IArchive<*>, ArchiveNodeResolver<*, *, *, *, *>>> {
         val parents = helper.erm.parents.mapAsync { parent ->
-            val mainResult = helper.cache(
-                MainPartitionLoader.TYPE,
-                helper.defaultEnvironment,
-                parent,
-            )()
+            val main = try {
+                helper.cache(
+                    MainPartitionLoader.TYPE,
+                    helper.defaultEnvironment,
+                    parent,
+                )
+            } catch (e: ArchiveException.ArchiveNotFound) {
+                null
+            }
 
-            val mainEx = mainResult.exceptionOrNull()
-            val main = if (mainEx != null) {
-                if (mainEx is ArchiveException.ArchiveNotFound) {
-                    null
-                } else throw mainEx
-            } else mainResult.getOrThrow()
-
-            val tweakerResult = helper.cache(
-                "tweaker",
-                helper.defaultEnvironment,
-                parent,
-            )()
-
-            val tweakerEx = tweakerResult.exceptionOrNull()
-            val tweaker = if (tweakerEx != null) {
-                if (tweakerEx is ArchiveException.ArchiveNotFound) {
-                    null
-                } else throw tweakerEx
-            } else tweakerResult.getOrThrow()
+            val tweaker = try {
+                helper.cache(
+                    "tweaker",
+                    helper.defaultEnvironment,
+                    parent,
+                )
+            } catch (e: ArchiveException.ArchiveNotFound) {
+                null
+            }
 
             listOf(main, tweaker)
         }.awaitAll().flatten().filterNotNull()
 
         val main = if (helper.erm.namedPartitions.contains("main")) {
-             helper.cache("main", helper.defaultEnvironment)().merge()
+            helper.cache("main", helper.defaultEnvironment)
         } else null
 
         val tweaker = if (helper.erm.namedPartitions.contains("tweaker")) {
-            helper.cache("tweaker", helper.defaultEnvironment)().merge()
+            helper.cache("tweaker", helper.defaultEnvironment)
         } else null
 
         val targetResolver = environment[TargetLinkerResolver]
@@ -156,16 +148,16 @@ public class MinecraftPartitionLoader(
             TargetArtifactRequest,
             TargetRepositorySettings,
             targetResolver
-        )().merge()
+        )
 
-        helper.newData(artifact.metadata.descriptor, parents + listOf(target) + listOfNotNull(main, tweaker))
+        return helper.newData(metadata.descriptor, parents + listOf(target) + listOfNotNull(main, tweaker))
     }
 
     override fun parseMetadata(
         partition: PartitionRuntimeModel,
         reference: ArchiveReference?,
         helper: PartitionMetadataHelper
-    ): Job<MinecraftPartitionMetadata> = job {
+    ): MinecraftPartitionMetadata {
         val entrypoint = partition.options["entrypoint"]
 
         val srcNS = partition.options["mappingNS"]
@@ -175,7 +167,7 @@ public class MinecraftPartitionLoader(
         val supportedVersions = partition.options["versions"]?.split(",")
             ?: throw IllegalArgumentException("Partition: '${partition.name}' in extension: '${helper.erm.descriptor} does not support any versions!")
 
-        MinecraftPartitionMetadata(
+        return MinecraftPartitionMetadata(
             partition.name,
             entrypoint,
             reference,
@@ -191,12 +183,12 @@ public class MinecraftPartitionLoader(
         // --\
         accessTree: PartitionAccessTree,
         helper: PartitionLoaderHelper
-    ): Job<ExtensionPartitionContainer<*, MinecraftPartitionMetadata>> = job {
+    ): ExtensionPartitionContainer<*, MinecraftPartitionMetadata> {
         val metadata = metadata as MinecraftPartitionMetadata
 
         val reference = metadata.archive
 
-        ExtensionPartitionContainer(
+        return ExtensionPartitionContainer(
             helper.descriptor,
             metadata,
             run {
@@ -223,7 +215,7 @@ public class MinecraftPartitionLoader(
                             .map(ArchiveRelationship::node)
                             .filterIsInstance<ClassLoadedArchiveNode<*>>()
                             .mapNotNullTo(ArrayList(), ClassLoadedArchiveNode<*>::handle)
-                    )().merge()
+                    )
 
                     val sourceProviderDelegate = ArchiveSourceProvider(reference)
                     val cl = PartitionClassLoader(
@@ -267,7 +259,7 @@ public class MinecraftPartitionLoader(
                             )
                         } ?: throw StructuredException(
                             ExtensionClassNotFound,
-                            message = "Could not init extension because the extension class couldn't be found."
+                            description = "Could not init extension because the extension class couldn't be found."
                         ) {
                             entrypoint asContext "Extension class name"
                         }
@@ -290,14 +282,13 @@ public class MinecraftPartitionLoader(
         )
     }
 
-
     private fun remap(
         reference: ArchiveReference,
         context: MappingContext,
         remappers: List<ExtensionRemapper>,
         appTree: ClassInheritanceTree,
         dependencies: List<ArchiveTree>
-    ) = job {
+    ) {
         fun remapTargetToSourcePath(
             path: ClassInheritancePath,
         ): ClassInheritancePath {
@@ -314,7 +305,7 @@ public class MinecraftPartitionLoader(
 
         fun inheritancePathFor(
             node: ClassNode
-        ): Job<ClassInheritancePath> = job {
+        ): ClassInheritancePath {
             fun getParent(name: String?): ClassInheritancePath? {
                 if (name == null) return null
 
@@ -327,17 +318,17 @@ public class MinecraftPartitionLoader(
                 val treeFromRef = reference.reader["$name.class"]?.let { e ->
                     inheritancePathFor(
                         e.open().parseNode()
-                    )().merge()
+                    )
                 }
 
                 val treeFromDependencies = dependencies.firstNotNullOfOrNull {
-                    it.getResource("$name.class")?.parseNode()?.let(::inheritancePathFor)?.invoke()?.merge()
+                    it.getResource("$name.class")?.parseNode()?.let(::inheritancePathFor)
                 }
 
                 return treeFromApp ?: treeFromRef ?: treeFromDependencies
             }
 
-            ClassInheritancePath(
+            return ClassInheritancePath(
                 node.name,
                 getParent(node.superName),
                 node.interfaces.mapNotNull { getParent(it) }
@@ -348,7 +339,7 @@ public class MinecraftPartitionLoader(
             .filterNot(ArchiveReference.Entry::isDirectory)
             .filter { it.name.endsWith(".class") }
             .associate { e ->
-                val path = inheritancePathFor(e.open().parseNode())().merge()
+                val path = inheritancePathFor(e.open().parseNode())
                 path.name to path
             }
 

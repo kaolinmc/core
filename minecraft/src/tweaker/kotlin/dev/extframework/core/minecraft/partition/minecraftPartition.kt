@@ -3,7 +3,6 @@ package dev.extframework.core.minecraft.partition
 //import dev.extframework.extension.core.feature.FeatureReference
 //import dev.extframework.extension.core.feature.findImplementedFeatures
 //import dev.extframework.extension.core.feature.implementsFeatures
-import com.durganmcbroom.artifact.resolver.Artifact
 import dev.extframework.archive.mapper.transform.ClassInheritancePath
 import dev.extframework.archive.mapper.transform.ClassInheritanceTree
 import dev.extframework.archive.mapper.transform.mapClassName
@@ -68,7 +67,7 @@ public open class MinecraftPartitionNode(
 public class MinecraftPartitionLoader(
     private val environment: ExtensionEnvironment,
 ) : ExtensionPartitionLoader<MinecraftPartitionMetadata> {
-    override val type: String = TYPE
+    override val id: String = TYPE
 
     public companion object {
         public const val TYPE: String = "minecraft"
@@ -114,20 +113,18 @@ public class MinecraftPartitionLoader(
             val main = try {
                 helper.cache(
                     MainPartitionLoader.TYPE,
-                    helper.defaultEnvironment,
                     parent,
                 )
-            } catch (e: ArchiveException.ArchiveNotFound) {
+            } catch (_: ArchiveException.ArchiveNotFound) {
                 null
             }
 
             val tweaker = try {
                 helper.cache(
                     "tweaker",
-                    helper.defaultEnvironment,
                     parent,
                 )
-            } catch (e: ArchiveException.ArchiveNotFound) {
+            } catch (_: ArchiveException.ArchiveNotFound) {
                 null
             }
 
@@ -135,19 +132,17 @@ public class MinecraftPartitionLoader(
         }.awaitAll().flatten().filterNotNull()
 
         val main = if (helper.erm.namedPartitions.contains("main")) {
-            helper.cache("main", helper.defaultEnvironment)
+            helper.cache("main")
         } else null
 
         val tweaker = if (helper.erm.namedPartitions.contains("tweaker")) {
-            helper.cache("tweaker", helper.defaultEnvironment)
+            helper.cache("tweaker")
         } else null
-
-        val targetResolver = environment[TargetLinkerResolver]
 
         val target = helper.cache(
             TargetArtifactRequest,
             TargetRepositorySettings,
-            targetResolver
+            environment[TargetLinkerResolver]
         )
 
         return helper.newData(metadata.descriptor, parents + listOf(target) + listOfNotNull(main, tweaker))

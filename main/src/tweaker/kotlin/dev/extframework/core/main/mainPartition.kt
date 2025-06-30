@@ -1,6 +1,5 @@
 package dev.extframework.core.main
 
-import com.durganmcbroom.artifact.resolver.Artifact
 import dev.extframework.archives.ArchiveHandle
 import dev.extframework.archives.ArchiveReference
 import dev.extframework.boot.archive.ArchiveException
@@ -22,7 +21,7 @@ import dev.extframework.tooling.api.extension.partition.artifact.PartitionArtifa
 import kotlinx.coroutines.awaitAll
 
 public class MainPartitionLoader : ExtensionPartitionLoader<MainPartitionMetadata> {
-    override val type: String = TYPE
+    override val id: String = TYPE
 
     public companion object {
         public const val TYPE: String = "main"
@@ -45,7 +44,7 @@ public class MainPartitionLoader : ExtensionPartitionLoader<MainPartitionMetadat
     ): Tree<Tagged<IArchive<*>, ArchiveNodeResolver<*, *, *, *, *>>> {
         val parentMainPartitions = helper.erm.parents.mapAsync {
             try {
-                helper.cache("main", helper.defaultEnvironment, it)
+                helper.cache("main", it)
             } catch (_: ArchiveException.ArchiveNotFound) {
                 null
             }
@@ -53,14 +52,14 @@ public class MainPartitionLoader : ExtensionPartitionLoader<MainPartitionMetadat
 
         val parentTweakerPartitions = helper.erm.parents.mapAsync {
             try {
-                helper.cache("tweaker", helper.defaultEnvironment, it)
+                helper.cache("tweaker", it)
             } catch (_: ArchiveException.ArchiveNotFound) {
                 null
             }
         }
 
         val tweakerPartition = if (helper.erm.partitions.any { model -> model.name == "tweaker" }) {
-            listOf(helper.cache("tweaker", helper.defaultEnvironment))
+            listOf(helper.cache("tweaker"))
         } else listOf()
 
         return helper.newData(

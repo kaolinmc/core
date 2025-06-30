@@ -16,15 +16,15 @@ import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayInputStream
 import java.nio.file.Path
 
-internal class MojangMappingProvider(
+public class MojangMappingProvider(
     private val mappingStore: DataStore<String, Resource>
 ) : MappingsProvider {
-    companion object {
-        val DEOBF_TYPE = MappingNamespace("mojang", "deobfuscated")
-        val OBF_TYPE = MappingNamespace("mojang","obfuscated")
+    public companion object {
+        public val DEOBF_TYPE: MappingNamespace = MappingNamespace("mojang", "deobfuscated")
+        public val OBF_TYPE: MappingNamespace = MappingNamespace("mojang","obfuscated")
     }
 
-    constructor(path: Path) : this(CachingDataStore(MojangMappingAccess(path)))
+    public constructor(path: Path) : this(CachingDataStore(MojangMappingAccess(path)))
 
     override val namespaces: Set<String> = setOf(DEOBF_TYPE.identifier, OBF_TYPE.identifier)
 

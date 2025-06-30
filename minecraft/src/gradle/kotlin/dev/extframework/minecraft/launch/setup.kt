@@ -68,7 +68,8 @@ public fun remapMinecraft(
 public suspend fun setupMinecraft(
     version: String,
     path: Path,
-    logger: Logger
+    logger: Logger,
+    downloadAssets : Boolean = true,
 ): MinecraftStartMetadata {
     val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -140,12 +141,14 @@ public suspend fun setupMinecraft(
         }
     }.awaitAll().flatten()
 
-    downloadAssets(
-        metadata = metadata,
-        path resolve "assets" resolve "objects",
-        path resolve "assets" resolve "indexes" resolve "${metadata.assetIndex.id}.json",
-        logger
-    )
+    if (downloadAssets) {
+        downloadAssets(
+            metadata = metadata,
+            path resolve "assets" resolve "objects",
+            path resolve "assets" resolve "indexes" resolve "${metadata.assetIndex.id}.json",
+            logger
+        )
+    }
 
    return MinecraftStartMetadata(
         version,
@@ -169,7 +172,7 @@ public suspend fun setupMinecraft(
     )
 }
 
-internal fun getMinecraftDir(): Path {
+public fun getMinecraftDir(): Path {
     val osName = System.getProperty("os.name").lowercase()
     val userHome = System.getProperty("user.home")
 

@@ -15,7 +15,6 @@ public class MainInit(
 //    public val delegate: ExtensionInitializer?,
     private val extResolver: ExtensionResolver,
     private val graph: ArchiveGraph,
-    private val environment: String
 ) {
     private val initialized = ArrayList<ExtensionDescriptor>()
     // A map of our subsystems. Any or Object is included additionally as a reference to the default.
@@ -27,7 +26,7 @@ public class MainInit(
             nodes
                 .filter { it.runtimeModel.namedPartitions.contains("main") }
                 .map { node ->
-                    val request = PartitionArtifactRequest(node.descriptor, "main", environment)
+                    val request = PartitionArtifactRequest(node.descriptor, "main")
 
                     UberParentRequest(
                         request,
@@ -57,12 +56,9 @@ public class MainInit(
             .forEach { node ->
                 // Run init on main partitions
                 try {
-                    val mainPartition = graph.getNode(
-                        node.descriptor.partition(
-                            "main",
-                            environment
-                        )
-                    ) as? ExtensionPartitionContainer<MainPartitionNode, MainPartitionMetadata>
+                    val mainPartition = graph.nodes[
+                        node.descriptor.partition("main")
+                    ]?.value as? ExtensionPartitionContainer<MainPartitionNode, MainPartitionMetadata>
 
                     mainPartition?.node?.entrypoint?.init()
                 } catch (e: Exception) {

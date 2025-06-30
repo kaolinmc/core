@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "dev.extframework.core"
-version = "1.0.5-BETA"
+version = "1.0.6-BETA"
 
 repositories {
     mavenLocal()
@@ -62,7 +62,7 @@ extension {
                 implementation(boot())
                 implementation(toolingApi())
                 implementation(artifactResolver())
-                implementation("dev.extframework:gradle-api:1.1-BETA")
+                implementation(gradlePluginApi())
                 implementation(archives())
                 implementation(archiveMapper())
                 implementation(archiveMapperTransform())

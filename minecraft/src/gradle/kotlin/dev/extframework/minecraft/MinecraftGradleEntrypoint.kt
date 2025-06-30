@@ -18,57 +18,80 @@ import dev.extframework.core.minecraft.environment.mappingTargetAttrKey
 import dev.extframework.core.minecraft.util.emptyArchiveHandle
 import dev.extframework.core.minecraft.util.emptyArchiveReference
 import dev.extframework.core.minecraft.util.write
-import dev.extframework.gradle.api.*
+import dev.extframework.gradle.api.BuildEnvironment
+import dev.extframework.gradle.api.ExtframeworkExtension
+import dev.extframework.gradle.api.GradleEntrypoint
 import dev.extframework.minecraft.launch.getMinecraftDir
 import dev.extframework.minecraft.launch.setupMinecraft
+import dev.extframework.tooling.api.ExtensionLoader
 import dev.extframework.tooling.api.environment.ExtensionEnvironment
 import dev.extframework.tooling.api.environment.ValueAttribute
 import kotlinx.coroutines.runBlocking
-import org.gradle.api.Project
 import java.io.File
 import java.nio.file.Path
 
 public class MinecraftGradleEntrypoint : GradleEntrypoint {
-    private val minecraftBuildPathAttrKey = ValueAttribute.Key<Path>("minecraft-build-path")
-    private val minecraftUnawareAttrKey = ValueAttribute.Key<Unit>("minecraft-unaware")
-    private val minecraftAwareAttrKey = ValueAttribute.Key<Unit>("minecraft-aware")
+    public companion object {
+        public val minecraftBuildPathAttrKey: ValueAttribute.Key<Path> =
+            ValueAttribute.Key<Path>("minecraft-build-path")
+        public val minecraftUnawareAttrKey: ValueAttribute.Key<Unit> = ValueAttribute.Key<Unit>("minecraft-unaware")
+        public val minecraftAwareAttrKey: ValueAttribute.Key<Unit> = ValueAttribute.Key<Unit>("minecraft-aware")
+    }
 
     private val logger = getLogger()
 
-    override fun apply(project: Project) {}
+    override suspend fun configure(
+        extension: ExtframeworkExtension,
+        helper: GradleEntrypoint.Helper
+    ) {
 
-    override fun tweak(root: BuildEnvironment) {
-        root[environmentEmitters].add(object : EnvironmentEmitter {
-            override fun emit(
-                extension: ExtframeworkExtension
-            ): List<ExtensionEnvironment> {
-                val neededEnvironments = extension.partitions
-                    .filterIsInstance<MinecraftPartitionHandler>()
-                    .mapNotNullTo(HashSet()) {
-                        it.dependencies.minecraftVersion
-                            ?.let { v -> v to it.mappings }
-                    }
-
-                val root by extension::defaultEnvironment
-
-                return neededEnvironments.map {
-                    root.compose("Minecraft ${it.first} mapped to ${it.second.identifier}") to it
-                }.onEach { (env, metadata) ->
-                    val (version, mappings) = metadata
-                    setupAware(env, version, mappings, extension)
-                }.map { it.first } + root.compose("Minecraft unaware").also {
-                    setupUnaware(it, extension.worker.dataDir resolve "minecraft")
-                }
+        val neededEnvironments = extension.partitions
+            .filterIsInstance<MinecraftPartitionHandler>()
+            .mapNotNullTo(HashSet()) {
+                it.dependencies.minecraftVersion
+                    ?.let { v -> v to it.mappings }
             }
-        })
 
-        root[environmentConfigurators].add(
-            MinecraftEnvironmentConfigurator(
-                minecraftBuildPathAttrKey,
-                minecraftUnawareAttrKey,
-                minecraftAwareAttrKey,
-            )
+        val root by extension::rootEnvironment
+
+        val minecraft = root.compose("Minecraft layer")
+
+        val configurator = MinecraftEnvironmentConfigurator(
+            minecraftBuildPathAttrKey,
+            minecraftUnawareAttrKey,
+            minecraftAwareAttrKey,
         )
+
+        val targetEnvironments = (neededEnvironments.map {
+            minecraft.compose("Minecraft ${it.first} mapped to ${it.second.identifier}") to it
+        }.onEach { (env, metadata) ->
+            val (version, mappings) = metadata
+            setupAware(env, version, mappings, extension)
+        }.map { it.first } + root.compose("Minecraft unaware").also {
+            setupUnaware(it, extension.worker.dataDir resolve "minecraft")
+        }).map {
+            BuildEnvironment(it, extension)
+        }
+
+        for (environment in targetEnvironments) {
+            // TODO decide what type of tweaker composition we want. Technically it is more
+            //  "correct" to only apply to the parents, however realistically any extension
+            //  depending on this one are running in a Minecraft environment and so would benefit
+            //  from not having to declare a gradle partition just to self tweak (also then cannot run
+            //  their tweakers before the app is setup, this is the larger issue).
+            //  :
+              helper.tweak(environment)
+//            environment[ExtensionLoader].tweak(
+//                extension.build.parents.map { it.node },
+//                environment,
+//            )
+
+            configurator.configure(
+                environment,
+                helper
+            )
+        }
+        extension.environments += targetEnvironments
     }
 
     private fun setupUnaware(
@@ -76,7 +99,7 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
         minecraftPath: Path
     ) {
         // Marker attribute
-        environment += ValueAttribute(Unit, minecraftUnawareAttrKey)
+        environment += ValueAttribute(minecraftUnawareAttrKey, Unit)
 
         environment += EmptyApp(
             minecraftPath resolve ".unaware"
@@ -97,9 +120,9 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
                         mappings.path resolve
                         "$version.jar"
 
-            environment += ValueAttribute(minecraftPath, minecraftBuildPathAttrKey)
+            environment += ValueAttribute(minecraftBuildPathAttrKey, minecraftPath)
             // Marker attribute
-            environment += ValueAttribute(Unit, minecraftAwareAttrKey)
+            environment += ValueAttribute(minecraftAwareAttrKey, Unit)
 
             val metadata = setupMinecraft(
                 version,
@@ -108,8 +131,8 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
             )
 
             environment += ValueAttribute(
-                mappings,
-                mappingTargetAttrKey
+                mappingTargetAttrKey,
+                mappings
             )
 
             environment += ClasspathApp(
@@ -122,7 +145,7 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
         }
     }
 
-    internal class EmptyApp(
+    public class EmptyApp(
         override val gameDir: Path,
     ) : MinecraftAppApi() {
         override val gameJar: Path = gameDir resolve "game.jar"
@@ -154,7 +177,7 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
             }
     }
 
-    internal class ClasspathApp(
+    public class ClasspathApp(
         override val classpath: List<Path>,
         override val version: String,
         override val path: Path,

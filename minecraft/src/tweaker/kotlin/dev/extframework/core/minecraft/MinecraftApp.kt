@@ -37,7 +37,7 @@ import java.util.jar.Manifest
 import kotlin.io.path.*
 import kotlin.reflect.KProperty
 
-internal fun MinecraftApp(
+public fun MinecraftApp(
     instrumentedApp: InstrumentedApplicationTarget,
     environment: ExtensionEnvironment
 ): InstrumentedAppImpl {
@@ -122,7 +122,7 @@ public class MinecraftApp internal constructor(
 
         val classpath = if (!mappingsMarker.exists()) {
             val mappings: ArchiveMapping by lazy {
-                newMappingsGraph(environment[mappingProvidersAttrKey])
+                newMappingsGraph(environment[mappingProvidersAttrKey].toList())
                     .findShortest(source.identifier, destination.value.identifier)
                     .forIdentifier(delegate.node.descriptor.version)
             }

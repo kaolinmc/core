@@ -2,17 +2,15 @@ package dev.extframework.core.minecraft.internal.remap
 
 import dev.extframework.core.minecraft.remap.InjectionRemapper
 import dev.extframework.core.minecraft.remap.MappingManager
-import dev.extframework.mixin.engine.InjectionParser
 import dev.extframework.mixin.engine.operation.OperationData
-import dev.extframework.mixin.engine.operation.OperationParent
 import dev.extframework.mixin.engine.operation.OperationRegistry
 import dev.extframework.mixin.engine.tag.ClassTag
 import dev.extframework.mixin.engine.transform.ClassTransformer
-import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
+import dev.extframework.tooling.api.environment.MutableSetAttribute
 import org.objectweb.asm.tree.ClassNode
 
 public class MixinMappingManager(
-    private val remappers: MutableObjectSetAttribute<InjectionRemapper<*>>,
+    private val remappers: MutableSetAttribute<InjectionRemapper<*>>,
     private val mappingManager: MappingManager
 ) {
     public fun <T : OperationData> isTarget(

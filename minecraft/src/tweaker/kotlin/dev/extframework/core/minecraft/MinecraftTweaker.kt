@@ -25,13 +25,13 @@ public class MinecraftTweaker : EnvironmentTweaker {
     ) {
         if (!environment.contains(mappingTargetAttrKey)) environment.set(
             ValueAttribute(
+                mappingTargetAttrKey,
                 MojangMappingProvider.OBF_TYPE,
-                mappingTargetAttrKey
             )
         )
 
         // Mapping providers
-        environment += MutableObjectSetAttribute(mappingProvidersAttrKey)
+        environment += MutableSetAttribute(mappingProvidersAttrKey)
         environment[mappingProvidersAttrKey].add(
             MojangMappingProvider(
                 environment[wrkDirAttrKey].value resolve "mappings"
@@ -71,10 +71,10 @@ public class MinecraftTweaker : EnvironmentTweaker {
 
         // Minecraft partition
         val partitionContainer = environment[partitionLoadersAttrKey].container
-        partitionContainer.register("minecraft", MinecraftPartitionLoader(environment))
+        partitionContainer.register(MinecraftPartitionLoader(environment))
 
         // Remappers
-        val remappers = MutableObjectSetAttribute(remappersAttrKey)
+        val remappers = MutableSetAttribute(remappersAttrKey)
         remappers.add(RootRemapper())
         environment += remappers
 

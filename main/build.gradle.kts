@@ -5,7 +5,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.3-BETA"
+version = "1.0.4-BETA"
 
 extension {
     model {
@@ -28,12 +28,12 @@ extension {
             }
         }
         gradle {
-            entrypointClass = "dev.extframework.core.main.MainGradlePlugin"
+            entrypointClass = "dev.extframework.core.main.MainGradleEntrypoint"
             dependencies {
                 implementation(toolingApi())
                 implementation(gradleApi())
                 implementation(boot())
-                implementation("dev.extframework:gradle-api:1.1-BETA")
+                implementation(gradlePluginApi())
                 implementation(commonUtil())
                 implementation(objectContainer())
             }

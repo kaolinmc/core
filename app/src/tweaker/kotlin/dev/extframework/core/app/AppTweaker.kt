@@ -18,7 +18,7 @@ public class AppTweaker : EnvironmentTweaker {
 
         val targetLinkerResolver = TargetLinkerResolver(linker)
         environment += targetLinkerResolver
-        environment[ExtensionLoader].graph.registerResolver(targetLinkerResolver)
+        environment[ExtensionLoader].graph.resolvers.register(targetLinkerResolver)
 
         environment.find(internalExtraAppConfigAttrKey)?.value?.invoke(environment)
     }

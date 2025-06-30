@@ -6,14 +6,13 @@ import dev.extframework.archives.zip.classLoaderToArchive
 import dev.extframework.boot.archive.ArchiveAccessTree
 import dev.extframework.boot.archive.ClassLoadedArchiveNode
 import dev.extframework.boot.util.toEnumeration
-import dev.extframework.common.util.make
 import dev.extframework.common.util.runCatching
 import dev.extframework.core.app.TargetLinker
 import dev.extframework.core.app.api.ApplicationDescriptor
 import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.instrument.InstrumentAgent
 import dev.extframework.core.instrument.InstrumentedApplicationTarget
-import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
+import dev.extframework.tooling.api.environment.MutableListAttribute
 import net.bytebuddy.agent.ByteBuddyAgent
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
@@ -23,18 +22,20 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-import kotlin.io.path.Path
 import kotlin.io.path.writeBytes
 
+// TODO environment composition
 public class InstrumentedAppImpl(
     override val delegate: ApplicationTarget,
-    private val linker: TargetLinker,
-    override val agents: MutableObjectSetAttribute<InstrumentAgent>
+    linker: TargetLinker,
+    override val agents: MutableListAttribute<InstrumentAgent>
 ) : InstrumentedApplicationTarget {
-    private val instrumentation = ByteBuddyAgent.install()
+    private val instrumentation by lazy { ByteBuddyAgent.install() }
     private val instrumentedLoader = InstrumentedClassLoader(
         linker, agents, delegate.node.handle!!
     )
+
+    //"https://api.modrinth.com/v2/project/AANobbMI/version?loaders=fabric&game_versions=1.21.4"
 
     override val node: ClassLoadedArchiveNode<ApplicationDescriptor> =
         object : ClassLoadedArchiveNode<ApplicationDescriptor> {
@@ -64,7 +65,7 @@ public class InstrumentedAppImpl(
 
 private class InstrumentedClassLoader(
     val linker: TargetLinker,
-    val agents: MutableObjectSetAttribute<InstrumentAgent>,
+    val agents: MutableListAttribute<InstrumentAgent>,
     val delegate: ArchiveHandle,
 ) : ClassLoader(linker.extensionLoader) {
     private fun InputStream.classNode(parsingOptions: Int = ClassReader.EXPAND_FRAMES): ClassNode {

@@ -5,7 +5,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.3-BETA"
+version = "1.0.4-BETA"
 
 repositories {
     mavenLocal()
@@ -35,9 +35,11 @@ extension {
             gradle {
                 entrypointClass = "dev.extframework.core.app.AppGradleEntrypoint"
                 dependencies {
+                    implementation(boot())
+                    implementation(objectContainer())
                     implementation(gradleApi())
                     implementation(toolingApi())
-                    implementation("dev.extframework:gradle-api:1.1-BETA")
+                    implementation(gradlePluginApi())
                 }
             }
         }

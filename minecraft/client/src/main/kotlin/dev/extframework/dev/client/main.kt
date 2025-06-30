@@ -7,15 +7,13 @@ import dev.extframework.boot.util.basicObjectMapper
 import dev.extframework.common.util.resolve
 import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.core.minecraft.api.MappingNamespace
+import dev.extframework.extloader.DefaultExtensionEnvironment
 import dev.extframework.extloader.DefaultExtensionLoader
-import dev.extframework.extloader.RootExtensionEnvironment
 import dev.extframework.extloader.extension.DefaultExtensionResolver
-import dev.extframework.extloader.extension.partition.DefaultPartitionResolver
+import dev.extframework.extloader.extension.partition.TweakerPartitionLoader
 import dev.extframework.minecraft.client.api.LaunchContext
 import dev.extframework.minecraft.client.api.MinecraftExtensionInitializer
-import dev.extframework.`object`.ObjectContainerImpl
-import dev.extframework.tooling.api.environment.EnvironmentRegistry
-import dev.extframework.tooling.api.environment.ValueAttribute
+import dev.extframework.tooling.api.environment.*
 import dev.extframework.tooling.api.extension.artifact.ExtensionDescriptor
 import dev.extframework.tooling.api.extension.artifact.ExtensionRepositorySettings
 import kotlinx.coroutines.runBlocking
@@ -33,14 +31,16 @@ public fun main(args: Array<String>) {
         addPackagedDependencies(archiveGraph, parsePackagedDependencies())
         val dependencyTypes = setupDependencyTypes(archiveGraph)
 
-        val registry: EnvironmentRegistry = ObjectContainerImpl()
-
-        val environment = RootExtensionEnvironment(
+        val environment = DefaultExtensionEnvironment(
             "root",
-            getHomedir(),
-            dependencyTypes,
         )
-        registry.register("root", environment)
+
+        environment += ValueAttribute(wrkDirAttrKey, getHomedir())
+        environment += ObjectContainerAttribute(dependencyTypesAttrKey, dependencyTypes)
+        environment += ValueAttribute(parentCLAttrKey, ClassLoader.getSystemClassLoader())
+        environment += ObjectContainerAttribute(partitionLoadersAttrKey).also { c ->
+            TweakerPartitionLoader().also { c.container.register( it) }
+        }
 
         val classpathApp = ClasspathApp(
             launchContext.classpath,
@@ -53,20 +53,18 @@ public fun main(args: Array<String>) {
         environment += classpathApp
 
         environment += ValueAttribute(
+            ValueAttribute.Key("mapping-target"),
             MappingNamespace.parse(launchContext.namespace),
-
-            ValueAttribute.Key("mapping-target")
         )
 
         val loader = DefaultExtensionLoader(
-            ClientExtensionResolver(
-                registry,
-                "root"
+            DefaultExtensionResolver(
+                ClassLoader.getSystemClassLoader(),
+                environment
             ),
             archiveGraph,
-            environment,
-            registry,
         )
+        environment += loader
 
         loader.cache(
             mapOf(
@@ -97,25 +95,91 @@ public fun main(args: Array<String>) {
     }
 }
 
-private class ClientExtensionResolver(
-    environmentRegistry: EnvironmentRegistry, defaultEnvironment: String,
-) : DefaultExtensionResolver(
-    ClientExtensionResolver::class.java.classLoader, environmentRegistry, defaultEnvironment
-) {
-    override val partitionResolver: DefaultPartitionResolver = object : DefaultPartitionResolver(
-        accessBridge,
-        environmentRegistry,
-        defaultEnvironment,
-    ) {
-//        override fun pathForDescriptor(descriptor: PartitionDescriptor, classifier: String, type: String): Path {
-//            return path resolve super.pathForDescriptor(descriptor, classifier, type)
-//        }
-    }
-
-//    override fun pathForDescriptor(descriptor: ExtensionDescriptor, classifier: String, type: String): Path {
-//        return path resolve super.pathForDescriptor(descriptor, classifier, type)
+//private class ClientExtensionResolver(
+//) : DefaultExtensionResolver(
+//    ClientExtensionResolver::class.java.classLoader, environmentRegistry, defaultEnvironment
+//) {
+//    override val partitionResolver: DefaultPartitionResolver = object : DefaultPartitionResolver(
+//        accessBridge,
+//        environmentRegistry,
+//        defaultEnvironment,
+//    ) {
+////        override fun pathForDescriptor(descriptor: PartitionDescriptor, classifier: String, type: String): Path {
+////            return path resolve super.pathForDescriptor(descriptor, classifier, type)
+////        }
 //    }
-}
+//
+////    override fun pathForDescriptor(descriptor: ExtensionDescriptor, classifier: String, type: String): Path {
+////        return path resolve super.pathForDescriptor(descriptor, classifier, type)
+////    }
+//}
+
+
+//internal open class GradleExtensionResolver(
+//    val isMocked: (ExtensionDescriptor) -> Boolean,
+//    classloader: ClassLoader,
+//    environment: ExtensionEnvironment,
+////    environmentRegistry: EnvironmentRegistry,
+////    defaultEnvironment: String,
+//) : DefaultExtensionResolver(
+//    classloader, environment
+//) {
+//    private val tempDir = Files.createTempDirectory("mocked-extensions")
+//
+//    override val partitionResolver: DefaultPartitionResolver = object : DefaultPartitionResolver(
+//        accessBridge, environment//environmentRegistry, defaultEnvironment
+//    ) {
+//        override fun pathForDescriptor(descriptor: PartitionDescriptor, classifier: String, type: String): Path {
+//            val basePath = if (isMocked(descriptor.extension)) {
+//                tempDir
+//            } else Path("extensions")
+//
+//            return basePath resolve super.pathForDescriptor(descriptor, classifier, type)
+//        }
+//    }
+//
+//    override fun pathForDescriptor(descriptor: ExtensionDescriptor, classifier: String, type: String): Path {
+//        val basePath = if (isMocked(descriptor)) {
+//            tempDir
+//        } else Path("extensions")
+//
+//        return basePath resolve super.pathForDescriptor(descriptor, classifier, type)
+//    }
+//
+//    internal class View(
+//        private val _reference: () -> GradleExtensionResolver,
+//        environment: ExtensionEnvironment
+//    ) : GradleExtensionResolver(
+//        _reference().isMocked,
+//        ClassLoader.getSystemClassLoader(),
+//        environment
+//    ) {
+//        private val reference: ExtensionResolver
+//            get() = _reference()
+//        override val layerLoader: ExtensionLayerClassLoader = ExtensionLayerClassLoader(
+//            reference.layerLoader,
+//            "Extension Layer ${environment.name}"
+//        )
+//
+//        override val accessBridge: ExtensionResolver.AccessBridge = object : ExtensionResolver.AccessBridge {
+//            override fun classLoaderFor(descriptor: ExtensionDescriptor): ExtensionClassLoader {
+//                return (extensionClassloaders[descriptor.toIdentifier()]) ?: reference.accessBridge.classLoaderFor(
+//                    descriptor
+//                )
+//            }
+//
+//            override fun ermFor(descriptor: ExtensionDescriptor): ExtensionRuntimeModel {
+//                return extensionMetadata[descriptor.toIdentifier()]?.erm ?: reference.accessBridge.ermFor(descriptor)
+//            }
+//
+//            override fun repositoryFor(descriptor: ExtensionDescriptor): ExtensionRepositorySettings {
+//                return extensionMetadata[descriptor.toIdentifier()]?.repository ?: reference.accessBridge.repositoryFor(
+//                    descriptor
+//                )
+//            }
+//        }
+//    }
+//}
 
 private fun getHomedir(): Path {
     return getMinecraftDir() resolve ".extframework"

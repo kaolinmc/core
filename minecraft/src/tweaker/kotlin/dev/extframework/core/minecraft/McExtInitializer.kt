@@ -15,7 +15,7 @@ import dev.extframework.core.minecraft.mixin.MixinSubsystem
 import dev.extframework.core.minecraft.partition.MinecraftPartitionLoader
 import dev.extframework.core.minecraft.partition.MinecraftPartitionNode
 import dev.extframework.minecraft.client.api.MinecraftExtensionInitializer
-import dev.extframework.tooling.api.environment.MutableObjectSetAttribute
+import dev.extframework.tooling.api.environment.MutableListAttribute
 import dev.extframework.tooling.api.exception.StructuredException
 import dev.extframework.tooling.api.extension.ExtensionNode
 import dev.extframework.tooling.api.extension.ExtensionResolver
@@ -26,7 +26,7 @@ import dev.extframework.tooling.api.extension.partition.artifact.partition
 import dev.extframework.tooling.api.uber.*
 
 public class McExtInitializer(
-    private val instrumentationAgents: MutableObjectSetAttribute<InstrumentAgent>,
+    private val instrumentationAgents: MutableListAttribute<InstrumentAgent>,
     private val linker: TargetLinker,
     public val delegate: MinecraftExtensionInitializer?,
     private val app: MinecraftApp,
@@ -73,7 +73,7 @@ public class McExtInitializer(
                     }
                     .map { model ->
                         UberParentRequest(
-                            PartitionArtifactRequest(node.descriptor, model.name, environment),
+                            PartitionArtifactRequest(node.descriptor, model.name),
                             extResolver.accessBridge.repositoryFor(node.descriptor),
                             extResolver.partitionResolver,
                         )
@@ -95,8 +95,8 @@ public class McExtInitializer(
         for (node in nodes) {
             // TODO all partitions?
             val partitions = node.runtimeModel.partitions
-                .map { node.descriptor.partition(it.name, environment) }
-                .mapNotNull { graph.getNode(it) }
+                .map { node.descriptor.partition(it.name) }
+                .mapNotNull { graph.nodes[it]?.value }
                 .filterIsInstance<ExtensionPartitionContainer<*, *>>()
 
             instrumentationAgents
@@ -146,6 +146,6 @@ public class McExtInitializer(
 
         }
 
-        MainInit(extResolver, graph, environment).init(nodes)
+        MainInit(extResolver, graph).init(nodes)
     }
 }

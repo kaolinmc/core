@@ -1,13 +1,13 @@
 package dev.extframework.core.app
 
-import com.durganmcbroom.artifact.resolver.*
+import com.durganmcbroom.artifact.resolver.ArtifactMetadata
+import com.durganmcbroom.artifact.resolver.ArtifactRepository
+import com.durganmcbroom.artifact.resolver.RepositoryFactory
 import dev.extframework.archives.ArchiveHandle
 import dev.extframework.archives.zip.classLoaderToArchive
 import dev.extframework.boot.archive.*
 import dev.extframework.boot.monad.Either
-import dev.extframework.boot.monad.Tagged
 import dev.extframework.boot.monad.Tree
-import dev.extframework.tooling.api.environment.ExtensionEnvironment
 import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute
 import dev.extframework.tooling.api.environment.ExtensionEnvironment.Attribute.Key
 import java.nio.file.Path
@@ -41,12 +41,12 @@ public open class TargetLinkerResolver(
     override val factory: RepositoryFactory<TargetRepositorySettings, ArtifactRepository<TargetRepositorySettings, TargetArtifactRequest, TargetArtifactMetadata>>
         get() = TargetArtifactFactory
 
-    override val name: String = "target"
+    override val id: String = "target"
     override val nodeType: Class<in TargetNode> = TargetNode::class.java
 
     override val key: Key<*> = TargetLinkerResolver
 
-    public companion object : ExtensionEnvironment.Attribute.Key<TargetLinkerResolver>
+    public companion object : Key<TargetLinkerResolver>
 
     override fun deserializeDescriptor(descriptor: Map<String, String>, trace: ArchiveTrace): TargetDescriptor =
         TargetDescriptor

@@ -8,7 +8,7 @@ import dev.extframework.minecraft.MojangNamespaces
 plugins {
     kotlin("jvm") version "2.0.21"
     id("maven-publish")
-    id("dev.extframework") version "1.4"
+    id("dev.extframework") version "1.4.1"
     id("dev.extframework.common") version "1.1"
 }
 

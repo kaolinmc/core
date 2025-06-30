@@ -9,7 +9,7 @@ public class MainPartitionTweaker : EnvironmentTweaker {
         environment: ExtensionEnvironment
     ) {
         val partitionContainer = environment[partitionLoadersAttrKey].container
-        partitionContainer.register("main", MainPartitionLoader())
+        partitionContainer.register(MainPartitionLoader())
 
         // Extension init
 //        environment += MainInit(

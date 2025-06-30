@@ -8,7 +8,7 @@ class TargetEntrypoint : Entrypoint() {
     override fun init() {
         startApp += Capability0 {
             println("Capability")
-            println(ResourceLocation("extframework", "test"))
+//            println(ResourceLocation("extframework", "test"))
         }
     }
 }

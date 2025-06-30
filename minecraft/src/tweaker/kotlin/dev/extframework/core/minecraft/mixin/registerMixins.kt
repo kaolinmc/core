@@ -27,7 +27,7 @@ import org.objectweb.asm.Type
 
 public fun registerMixins(environment: ExtensionEnvironment) {
     // Injection remapping
-    val injectionRemappers = MutableObjectSetAttribute(injectionRemappersAttrKey)
+    val injectionRemappers = MutableSetAttribute(injectionRemappersAttrKey)
     injectionRemappers.add(CodeInjectionRemapper())
     injectionRemappers.add(MethodInjectionRemapper())
     environment += injectionRemappers
@@ -45,7 +45,8 @@ public fun registerMixins(environment: ExtensionEnvironment) {
 
     // Type provision
     var typeProvider: (ClassReference) -> Class<*>? = { ref ->
-        environment[ExtensionLoader].graph.nodes()
+        environment[ExtensionLoader].graph.nodes.values
+            .map { it.value }
             .filterIsInstance<ExtensionPartitionContainer<*, *>>()
             .filter { it.metadata.name == "tweaker" }
             .firstNotNullOfOrNull {
@@ -69,7 +70,7 @@ public fun registerMixins(environment: ExtensionEnvironment) {
     engine.transformers.add(methodInjector)
     engine.transformers.add(instructionInjector)
 
-    environment += ValueAttribute(engine, engineAttrKey)
+    environment += ValueAttribute(engineAttrKey,engine)
 
     // Instrumentation agents
     val instrumentAgents = environment[instrumentAgentsAttrKey]

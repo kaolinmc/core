@@ -9,6 +9,7 @@ import dev.extframework.mixin.MixinEngine
 import dev.extframework.mixin.api.ClassReference
 import dev.extframework.mixin.api.ClassReference.Companion.ref
 import dev.extframework.mixin.api.Mixin
+import dev.extframework.mixin.engine.tag.ClassTag
 import dev.extframework.tooling.api.extension.partition.ExtensionPartitionContainer
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Type
@@ -24,33 +25,30 @@ public class DefaultMixinSubsystem(
     private val needPreprocessing = HashSet<ClassReference>()
     private val preprocessed = HashMap<ClassReference, ClassNode>()
 
-    override fun unregister(ctx: MixinProcessContext) {
-        val needReloading = resolveMixins(ctx)
-            .flatMap { (mixinNode, metadata) ->
-                engine.unregisterMixin(
-                    MappingAwareClassTag(
-                        mixinNode.ref(),
-                        metadata.mappingNamespace
-                    )
-                )
-            }
-
+    override fun unregister(tags: Set<ClassTag>) {
+        val needReloading = tags.flatMap {
+            engine.unregisterMixin(it)
+        }
         for (reference in needReloading) {
             app.redefine(reference.name)
         }
     }
 
-    override fun register(ctx: MixinProcessContext): Boolean {
-        resolveMixins(ctx)
-            .forEach { (it, metadata) ->
+    override fun register(ctx: MixinProcessContext): Set<ClassTag> {
+        val tags = resolveMixins(ctx)
+            .mapTo(HashSet()) { (it, metadata) ->
+                val tag = MappingAwareClassTag(it.ref(), metadata.mappingNamespace)
                 val targets = engine.registerMixin(
-                    MappingAwareClassTag(it.ref(), metadata.mappingNamespace),
+                    tag,
                     it
                 )
+
                 needPreprocessing.addAll(targets)
+
+                tag
             }
 
-        return true
+        return tags
     }
 
     private fun resolveMixins(
@@ -86,19 +84,11 @@ public class DefaultMixinSubsystem(
                 ?.classloader
                 ?.getResourceAsStream("${reference.internalName}.class")
                 ?.use { it ->
-//                    val node = if (it != null) {
-//                        val node = ClassNode()
-//                        ClassReader(it).accept(node, ClassReader.EXPAND_FRAMES)
-//
-//                        engine.transform(node)
-//                    } else {
-//                        engine.generate(reference)
-//                    } ?: return@use
-
                     val node = ClassNode()
                     ClassReader(it).accept(node, ClassReader.EXPAND_FRAMES)
 
                     preprocessed[reference] = node
+                    app.redefine(reference.name)
                 }
         }
     }

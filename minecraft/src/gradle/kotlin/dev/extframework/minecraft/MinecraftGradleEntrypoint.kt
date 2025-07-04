@@ -23,10 +23,12 @@ import dev.extframework.gradle.api.ExtframeworkExtension
 import dev.extframework.gradle.api.GradleEntrypoint
 import dev.extframework.minecraft.launch.getMinecraftDir
 import dev.extframework.minecraft.launch.setupMinecraft
+import dev.extframework.minecraft.task.ReloadExtension
 import dev.extframework.tooling.api.ExtensionLoader
 import dev.extframework.tooling.api.environment.ExtensionEnvironment
 import dev.extframework.tooling.api.environment.ValueAttribute
 import kotlinx.coroutines.runBlocking
+import org.gradle.api.Project
 import java.io.File
 import java.nio.file.Path
 
@@ -44,6 +46,7 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
         extension: ExtframeworkExtension,
         helper: GradleEntrypoint.Helper
     ) {
+        registerReloadTask(extension.project)
 
         val neededEnvironments = extension.partitions
             .filterIsInstance<MinecraftPartitionHandler>()
@@ -142,6 +145,14 @@ public class MinecraftGradleEntrypoint : GradleEntrypoint {
                 metadata.clientJar,
                 metadata.mainClass
             )
+        }
+    }
+
+    private fun registerReloadTask(
+        project: Project
+    ) {
+        project.tasks.register("reload", ReloadExtension::class.java) {
+            it.outputs.upToDateWhen { false }
         }
     }
 

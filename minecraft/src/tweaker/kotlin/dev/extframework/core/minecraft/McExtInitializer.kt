@@ -15,10 +15,12 @@ import dev.extframework.core.minecraft.mixin.MixinSubsystem
 import dev.extframework.core.minecraft.partition.MinecraftPartitionLoader
 import dev.extframework.core.minecraft.partition.MinecraftPartitionNode
 import dev.extframework.minecraft.client.api.MinecraftExtensionInitializer
+import dev.extframework.mixin.engine.tag.ClassTag
 import dev.extframework.tooling.api.environment.MutableListAttribute
 import dev.extframework.tooling.api.exception.StructuredException
 import dev.extframework.tooling.api.extension.ExtensionNode
 import dev.extframework.tooling.api.extension.ExtensionResolver
+import dev.extframework.tooling.api.extension.artifact.ExtensionDescriptor
 import dev.extframework.tooling.api.extension.descriptor
 import dev.extframework.tooling.api.extension.partition.ExtensionPartitionContainer
 import dev.extframework.tooling.api.extension.partition.artifact.PartitionArtifactRequest
@@ -34,6 +36,8 @@ public class McExtInitializer(
     private val graph: ArchiveGraph,
     private val environment: String
 ) : MinecraftExtensionInitializer {
+    internal val extensionMixins = HashMap<ExtensionDescriptor, Set<ClassTag>>()
+
     override suspend fun initialize(nodes: List<ExtensionNode>) {
         app.setup()
 
@@ -102,28 +106,25 @@ public class McExtInitializer(
             instrumentationAgents
                 .filterIsInstance<MixinSubsystem>()
                 .onEach {
-                    it.register(MixinProcessContext(node, partitions))
+                    extensionMixins[node.descriptor] = it.register(MixinProcessContext(node, partitions))
                 }
                 .forEach {
                     it.runPreprocessors()
                 }
 
-            // TODO this creates duplicates if two extensions rely on the same library.
-            linker.addExtensionClasses(
-                DelegatingClassProvider(
-                    partitions
-                        .flatMap { it.access.targets.map { it.relationship.node } + it }
-                        .filterIsInstance<ClassLoadedArchiveNode<*>>()
-                        .map { it.handle }
-                        .map { ArchiveClassProvider(it) }
-                )
+            linker.extensionClasses[node.descriptor] = DelegatingClassProvider(
+                partitions
+                    .flatMap { it.access.targets.map { it.relationship.node } + it }
+                    .filterIsInstance<ClassLoadedArchiveNode<*>>()
+                    .map { it.handle }
+                    .map { ArchiveClassProvider(it) }
             )
-            linker.addExtensionResources(
-                DelegatingResourceProvider(
-                    partitions
+
+            linker.extensionResources[node.descriptor] = DelegatingResourceProvider(
+                partitions
                     .map { it.handle }
                     .map { ArchiveResourceProvider(it) }
-            ))
+            )
 
             // Run init on target partitions
             partitions

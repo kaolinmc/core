@@ -1,11 +1,12 @@
 package dev.extframework.tests.core
 
-import BootLoggerFactory
-import com.durganmcbroom.jobs.launch
-import dev.extframework.extloader.DefaultExtensionLoader
-import dev.extframework.extloader.InternalExtensionEnvironment
+import com.durganmcbroom.resources.KtorInstance
+import dev.extframework.core.app.api.ApplicationTarget
+import dev.extframework.minecraft.client.api.MinecraftExtensionInitializer
+import dev.extframework.minecraft.client.api.minecraftInitializersAttrKey
 import dev.extframework.tooling.api.extension.artifact.ExtensionDescriptor
 import dev.extframework.tooling.api.extension.artifact.ExtensionRepositorySettings
+import io.ktor.client.request.post
 import kotlinx.coroutines.runBlocking
 import kotlin.io.path.Path
 import kotlin.test.Test
@@ -15,78 +16,70 @@ public class BlackboxTest {
     public fun `Test extension run`() {
         val path = Path("tests", "test-extension-run").toAbsolutePath()
 
-        launch(BootLoggerFactory()) {
-            val (graph, types) = setupBoot(path)
+        val (loader) = newLoader()
 
-            val environment = InternalExtensionEnvironment(
-                path, graph, types,
-            ).also {
-                it += createMinecraftApp()
-            }
+        loader.environment += createMinecraftApp()
 
-            val loader = DefaultExtensionLoader(environment)
-
-            runBlocking {
-                var descriptor = ExtensionDescriptor.parseDescriptor(
-                    "com.example:blackbox:1"
+        runBlocking {
+            val descriptor = ExtensionDescriptor.parseDescriptor(
+                "com.example:blackbox:1"
+            )
+            loader.cache(
+                mapOf(
+                    descriptor to ExtensionRepositorySettings.local()
                 )
-                loader.cache(
-                    mapOf(
-                        descriptor to ExtensionRepositorySettings.local()
-                    )
-                )().merge()
+            )
 
-                loader.load(listOf(descriptor))().merge()
+            val loaded = loader.load(listOf(descriptor))
 
-                loader.runTweakers()().merge()
-                loader.runInitialization()().merge()
-            }
+            loader.tweak(loaded)
+//            loader.runInitialization()().merge()
         }
     }
 
     @Test
     public fun `Test extension reloading`() {
-        val path = Path("tests", "test-extension-run").toAbsolutePath()
 
-        launch(BootLoggerFactory()) {
-            val (graph, types) = setupBoot(path)
+        val path = Path("tests", "test-extension-reload").toAbsolutePath()
 
-            var createMinecraftApp = createMinecraftApp()
-            val environment = InternalExtensionEnvironment(
-                path, graph, types,
-            ).also {
-                it += createMinecraftApp
-            }
+        runBlocking {
+            val (loader) = newLoader(path)
 
-            val loader = DefaultExtensionLoader(environment)
+            val createMinecraftApp = createMinecraftApp()
+            loader.environment += createMinecraftApp
 
-            runBlocking {
-                var descriptor = ExtensionDescriptor.parseDescriptor(
-                    "com.example:blackbox:1"
+            val descriptor = ExtensionDescriptor.parseDescriptor(
+                "com.example:reload:1"
+            )
+
+            loader.cache(
+                mapOf(
+                    descriptor to ExtensionRepositorySettings.local()
                 )
+            )
 
-                loader.cache(
-                    mapOf(
-                        descriptor to ExtensionRepositorySettings.local()
-                    )
-                )().merge()
+            val extensions = loader.load(listOf(descriptor))
 
-                loader.load(listOf(descriptor))().merge()
+            loader.tweak(extensions)
 
-                loader.runTweakers()().merge()
-                loader.runInitialization()().merge()
+            loader.environment[MinecraftExtensionInitializer].initialize(extensions)
 
-                loader.unload(descriptor)().merge()
+            val cls = loader.environment[ApplicationTarget].node.handle!!.classloader.loadClass("targetapp.Main")
+            val instance = cls.getConstructor().newInstance()
+            val method = cls.getMethod("main")
 
-                createMinecraftApp.version = "2"
+            check(method.invoke(instance) as Int == 6)
 
-                loader.load(listOf(descriptor))().merge()
+            loader.unload(descriptor)
 
-                loader.runInitialization()().merge()
-                System.gc()
+            check(method.invoke(instance) as Int == 5)
 
-                println("")
-            }
+            createMinecraftApp.version = "2"
+
+            loader.load(listOf(descriptor))
+            loader.environment[MinecraftExtensionInitializer].initialize(extensions)
+
+            check(method.invoke(instance) as Int == 7)
         }
     }
 }

@@ -9,7 +9,7 @@ plugins {
     application
     id("com.gradleup.shadow") version "9.0.0-beta11"
     id("dev.extframework.common")
-
+    id("io.ktor.plugin") version "3.2.0"
     id("me.champeau.mrjar") version "0.1.1"
 }
 
@@ -54,10 +54,11 @@ dependencies {
     implementation(resourceApi())
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
     implementation(project("client-api"))
+    implementation("io.ktor:ktor-server-core:3.2.0")
+    implementation("io.ktor:ktor-server-netty:3.2.0")
 
     "java11Implementation"("dev.extframework:boot:${rootProject.extensions.getByType<DependencyManagement>()["boot"]["version"]}:jdk11")
     "java11Implementation"("dev.extframework:archives:${rootProject.extensions.getByType<DependencyManagement>()["archives"]["version"]}:jdk11")
-
 
     "java11Implementation"(boot())
     "java11Implementation"(objectContainer())
@@ -156,8 +157,8 @@ tasks.shadowJar {
 }
 
 tasks.jar {
-    enabled = false
-    dependsOn(tasks.shadowJar)
+    from(tasks.shadowJar)
+    isEnabled = false
 }
 
 common {

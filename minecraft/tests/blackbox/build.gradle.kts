@@ -39,17 +39,15 @@ val launch by tasks.registering(LaunchMinecraft::class) {
 //    dependsOn(tasks.withType<GenerateMinecraftSource>())
 //}
 
+kotlin {
+    jvmToolchain(21)
+}
+
 extension {
     partitions {
         main {
             extensionClass = "com.example.BlackboxExtension"
             dependencies {
-            }
-        }
-        minecraft("minecraftUnaware") {
-            entrypoint = "com.example.TargetEntrypoint"
-            dependencies {
-                mixin()
             }
         }
         minecraft("target1") {
@@ -60,17 +58,6 @@ extension {
                 minecraft("1.21.4")
             }
         }
-        tweaker {
-            
-        }
-        minecraft("target2") {
-            entrypoint = "com.example.TargetEntrypoint2"
-            mappings = MojangNamespaces.deobfuscated
-            supportVersions("1.21")
 
-            dependencies {
-                minecraft("1.21.4")
-            }
-        }
     }
 }

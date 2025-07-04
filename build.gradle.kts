@@ -3,19 +3,12 @@ import dev.extframework.gradle.common.*
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("dev.extframework.common") version "1.1.1"
-    id("dev.extframework") version "1.4.1"
+    id("dev.extframework.common") version "1.1.2"
+    id("dev.extframework") version "1.4.2"
 }
 
 tasks.wrapper {
     gradleVersion = "8.14.2"
-}
-
-dependencyManagement {
-    boot("3.7.1-SNAPSHOT")
-    objectContainer("1.1.3-SNAPSHOT")
-    extLoader("2.2.1-SNAPSHOT")
-    toolingApi("1.1.1-SNAPSHOT")
 }
 
 val publishAll by tasks.registering {
@@ -69,7 +62,6 @@ allprojects {
     repositories {
         mavenCentral()
         extFramework()
-        mavenLocal()
     }
 
     kotlin {

@@ -11,7 +11,8 @@ repositories {
 }
 
 dependencies {
-    boot()
+    implementation(boot())
+    implementation(toolingApi())
 
     implementation(project(":instrument"))
     implementation(project(":app"))
@@ -20,6 +21,7 @@ dependencies {
 //    implementation(artifactResolver())
     implementation(objectContainer())
     implementation(project(":minecraft:minecraft-api"))
+    implementation(project(":minecraft:client:client-api"))
 //    implementation(resourceApi())
 
     testImplementation(kotlin("test"))

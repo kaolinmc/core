@@ -3,6 +3,7 @@ package dev.extframework.core.app
 import dev.extframework.boot.loader.*
 import dev.extframework.core.app.api.ApplicationTarget
 import dev.extframework.tooling.api.environment.ExtensionEnvironment
+import dev.extframework.tooling.api.extension.artifact.ExtensionDescriptor
 import java.net.URL
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -43,13 +44,16 @@ public class TargetLinker : ExtensionEnvironment.Attribute {
         parent = ClassLoader.getSystemClassLoader(),
     )
 
-    private val extensionClasses: MutableClassProvider = MutableClassProvider(ArrayList())
-    private val extensionResources: MutableResourceProvider = MutableResourceProvider(ArrayList())
+    public val extensionClasses: MutableMap<ExtensionDescriptor, ClassProvider> =
+        HashMap()// : MutableClassProvider = MutableClassProvider(ArrayList())
+    public val extensionResources: MutableMap<ExtensionDescriptor, ResourceProvider> =
+        HashMap() //: MutableResourceProvider = MutableResourceProvider(ArrayList())
 
     public val extensionLoader: ClassLoader = IntegratedLoader(
         name = "App -> (Linker) -> Extension",
         classProvider = object : ClassProvider {
-            override val packages: Set<String> by extensionClasses::packages
+            override val packages: Set<String>
+                get() = extensionClasses.values.flatMapTo(HashSet()) { it.packages }
 
             override fun findClass(name: String): Class<*>? {
                 return findClassInternal(name, LinkerState.LOAD_EXTENSION)
@@ -63,8 +67,19 @@ public class TargetLinker : ExtensionEnvironment.Attribute {
         parent = TargetLinker::class.java.classLoader,
     )
 
-    public fun addExtensionClasses(provider: ClassProvider): Unit = extensionClasses.add(provider)
-    public fun addExtensionResources(provider: ResourceProvider): Unit = extensionResources.add(provider)
+//    public fun addExtensionClasses(
+//        extension: ExtensionDescriptor,
+//        provider: ClassProvider
+//    ) {
+//        extensionClasses[extension] = provider
+//    }//.add(provider)
+//
+//    public fun addExtensionResources(
+//        extension: ExtensionDescriptor,
+//        provider: ResourceProvider
+//    ) {
+//        extensionResources[extension] = provider
+//    }// = extensionResources.add(provider)
 
     public fun findResources(name: String): Sequence<URL> {
         return findResourceInternal(name, LinkerState.LOAD_TARGET) +
@@ -85,7 +100,9 @@ public class TargetLinker : ExtensionEnvironment.Attribute {
             this.rlState = state
             val r = when (state) {
                 LinkerState.LOAD_TARGET -> target.node.handle!!.classloader.getResources(name).asSequence()
-                LinkerState.LOAD_EXTENSION -> extensionResources.findResources(name)
+                LinkerState.LOAD_EXTENSION -> extensionResources.values.firstNotNullOfOrNull { it.findResources(name) }
+                    ?: sequenceOf()
+
                 LinkerState.NEITHER -> throw IllegalArgumentException("Cannot load linker state of neither.")
             }
 
@@ -113,7 +130,7 @@ public class TargetLinker : ExtensionEnvironment.Attribute {
 
             val c = when (state) {
                 LinkerState.LOAD_TARGET -> target.node.handle!!.classloader.loadClass(name)
-                LinkerState.LOAD_EXTENSION -> extensionClasses.findClass(name)
+                LinkerState.LOAD_EXTENSION -> extensionClasses.values.firstNotNullOfOrNull { it.findClass(name) }
                 LinkerState.NEITHER -> throw IllegalArgumentException("Cannot load linker state of 'NEITHER'.")
             }
 

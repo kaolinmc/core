@@ -7,10 +7,7 @@ import dev.extframework.boot.archive.*
 import dev.extframework.boot.loader.*
 import dev.extframework.core.app.api.ApplicationDescriptor
 import dev.extframework.core.app.api.ApplicationTarget
-import dev.extframework.core.instrument.InstrumentAgent
-import dev.extframework.core.instrument.InstrumentedApplicationTarget
 import dev.extframework.core.minecraft.api.MinecraftAppApi
-import dev.extframework.extloader.util.emptyArchiveReference
 import java.nio.file.Path
 import kotlin.io.path.Path
 
@@ -42,7 +39,7 @@ import kotlin.io.path.Path
 //    }
 //}
 
-class App  : MinecraftAppApi() {
+public class App  : MinecraftAppApi() {
     override val node: ClassLoadedArchiveNode<ApplicationDescriptor> =
         object : ClassLoadedArchiveNode<ApplicationDescriptor> {
             private val appDesc = ApplicationDescriptor.parseDescription("test:app:1")!!
@@ -51,7 +48,7 @@ class App  : MinecraftAppApi() {
                 override val targets: List<ArchiveTarget> = listOf()
             }
             override val descriptor: ApplicationDescriptor = appDesc
-            val archive = Archives.Finders.ZIP_FINDER.find(Path("tests/mc/client.jar"))
+            val archive = Archives.Finders.ZIP_FINDER.find(Path("tests/mc/target-app.jar"))
             override val handle: ArchiveHandle = Archives.resolve(
                 archive,
                 IntegratedLoader(
@@ -67,14 +64,15 @@ class App  : MinecraftAppApi() {
     override val path: Path = Path("")
 
     override val gameDir: Path = Path("tests/mc")
-    override val gameJar: Path = Path("tests/mc/client.jar")
+    override val gameJar: Path = Path("tests/mc/target-app.jar")
     override val classpath: List<Path> = listOf()
     override var version: String = "1"
+    override val mainClass: String = "doesnt.matter"
 }
 
-fun createMinecraftApp() = App()
+public fun createMinecraftApp(): App = App()
 
-fun createBlackboxApp(path: Path): ApplicationTarget {
+public fun createBlackboxApp(path: Path): ApplicationTarget {
     return object : ApplicationTarget {
         override val node: ClassLoadedArchiveNode<ApplicationDescriptor> =
             object : ClassLoadedArchiveNode<ApplicationDescriptor> {

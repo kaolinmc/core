@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "dev.extframework.core"
-version = "1.0.6-BETA"
+version = "1.0.7-BETA"
 
 repositories {
     mavenLocal()
@@ -87,8 +87,9 @@ tasks.test {
     dependsOn(listDependencies)
 }
 
+evaluationDependsOn("client")
 tasks.named<org.gradle.jvm.tasks.Jar>("gradleJar") {
-    from(project("client").tasks.named("jar")) {
+    from(project("client").tasks.named("shadowJar")) {
         rename { "client.jar" }
     }
 }

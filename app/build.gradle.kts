@@ -5,7 +5,7 @@ plugins {
     id("dev.extframework")
 }
 
-version = "1.0.4-BETA"
+version = "1.0.5-BETA"
 
 repositories {
     mavenLocal()

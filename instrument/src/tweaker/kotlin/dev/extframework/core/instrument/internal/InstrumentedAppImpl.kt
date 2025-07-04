@@ -24,7 +24,6 @@ import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.writeBytes
 
-// TODO environment composition
 public class InstrumentedAppImpl(
     override val delegate: ApplicationTarget,
     linker: TargetLinker,

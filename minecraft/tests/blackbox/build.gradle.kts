@@ -1,27 +1,23 @@
-import dev.extframework.core.main.main
-import dev.extframework.gradle.common.extFramework
-import dev.extframework.gradle.common.*
-import dev.extframework.minecraft.minecraft
-import dev.extframework.minecraft.task.LaunchMinecraft
-import dev.extframework.minecraft.MojangNamespaces
+import com.kaolinmc.core.main.main
+import com.kaolinmc.gradle.common.kaolin
+import com.kaolinmc.minecraft.MojangNamespaces
+import com.kaolinmc.minecraft.minecraft
+import com.kaolinmc.minecraft.task.LaunchMinecraft
 
 plugins {
     kotlin("jvm") version "2.0.21"
     id("maven-publish")
-    id("dev.extframework") version "1.4.1"
-    id("dev.extframework.common") version "1.1"
+    id("kaolin.kiln") version "0.1"
+    id("com.kaolinmc.common") version "0.1"
 }
 
-group = "dev.extframework.extension"
+group = "com.kaolinmc.extension"
 version = "1.0-BETA"
 
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = uri("https://repo.extframework.dev/registry")
-    }
-    extFramework()
+    kaolin()
 }
 
 val publishToMavenLocal by tasks.getting

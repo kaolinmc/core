@@ -1,13 +1,11 @@
-import dev.extframework.gradle.common.RepositoryType
-import dev.extframework.gradle.common.extFramework
-import dev.extframework.gradle.common.toolingApi
+import com.kaolinmc.gradle.common.*
 
 plugins {
     kotlin("jvm")
 }
 
-group = "dev.extframework.core"
-version = "1.0.1-BETA"
+group = "com.kaolinmc.core"
+version = "1.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -38,16 +36,16 @@ common {
             commonPom {
                 packaging = "jar"
 
-                withExtFrameworkRepo()
+                withKaolinRepo()
                 defaultDevelopers()
                 gnuLicense()
-                extFrameworkScm("core")
+                kaolinScm("core")
             }
 
             artifactId = "minecraft-client-api"
         }
         repositories {
-            extFramework(credentials = propertyCredentialProvider, type = RepositoryType.SNAPSHOTS)
+            kaolin(credentials = propertyCredentialProvider, type = RepositoryType.SNAPSHOTS)
         }
     }
 }

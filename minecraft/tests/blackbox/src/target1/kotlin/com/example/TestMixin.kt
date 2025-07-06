@@ -1,8 +1,8 @@
 package com.example
 
-import dev.extframework.mixin.api.InjectCode
-import dev.extframework.mixin.api.Mixin
-import dev.extframework.mixin.api.MixinFlow
+import com.kaolinmc.mixin.api.InjectCode
+import com.kaolinmc.mixin.api.Mixin
+import com.kaolinmc.mixin.api.MixinFlow
 import net.minecraft.client.Minecraft
 import net.minecraft.client.main.Main
 import net.minecraft.server.Bootstrap

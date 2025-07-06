@@ -1,7 +1,7 @@
 package com.example
 
-import dev.extframework.core.capability.Capability0
-import dev.extframework.core.entrypoint.Entrypoint
+import com.kaolinmc.core.capability.Capability0
+import com.kaolinmc.core.entrypoint.Entrypoint
 import net.minecraft.server.Bootstrap
 
 class TargetEntrypoint : Entrypoint() {

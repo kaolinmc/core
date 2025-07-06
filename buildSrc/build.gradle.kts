@@ -1,25 +1,23 @@
-import dev.extframework.gradle.common.archives
-import dev.extframework.gradle.common.commonUtil
-import dev.extframework.gradle.common.dm.resourceApi
-import dev.extframework.gradle.common.extFramework
+import com.kaolinmc.gradle.common.*
 
 plugins {
     `kotlin-dsl`
-    id("dev.extframework.common") version "1.0.45"
+    id("com.kaolinmc.common") version "0.1"
     publishing
 }
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    extFramework()
+    kaolin()
+    mavenLocal()
 }
 
 dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
-    resourceApi()
-    commonUtil()
-    archives()
+    implementation(resourceApi())
+    implementation( commonUtil())
+            implementation( archives())
 }
 
 common {

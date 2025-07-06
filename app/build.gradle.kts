@@ -1,8 +1,8 @@
-import dev.extframework.gradle.common.*
-import dev.extframework.gradle.publish.ExtensionPublication
+import com.kaolinmc.gradle.common.*
+import com.kaolinmc.kiln.publish.ExtensionPublication
 
 plugins {
-    id("dev.extframework")
+    id("kaolin.kiln")
 }
 
 version = "1.0.5-BETA"
@@ -10,7 +10,7 @@ version = "1.0.5-BETA"
 repositories {
     mavenLocal()
     mavenCentral()
-    extFramework()
+    kaolin()
 }
 
 extension {
@@ -20,7 +20,7 @@ extension {
 
     partitions {
         tweaker {
-            tweakerClass = "dev.extframework.core.app.AppTweaker"
+            tweakerClass = "com.kaolinmc.core.app.AppTweaker"
             dependencies {
                 implementation(project("app-api"))
 
@@ -33,7 +33,7 @@ extension {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
             }
             gradle {
-                entrypointClass = "dev.extframework.core.app.AppGradleEntrypoint"
+                entrypointClass = "com.kaolinmc.core.app.AppGradleEntrypoint"
                 dependencies {
                     implementation(boot())
                     implementation(objectContainer())
@@ -58,7 +58,7 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("https://repo.extframework.dev")
+            url = uri("https://repo.kaolinmc.com")
             credentials {
                 password = properties["creds.ext.key"] as? String
             }

@@ -1,9 +1,10 @@
 pluginManagement {
     repositories {
         maven {
-            url = uri("https://maven.extframework.dev/releases")
+            url = uri("https://maven.kaolinmc.com/releases")
         }
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 

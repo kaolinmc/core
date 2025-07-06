@@ -1,6 +1,6 @@
 package com.example
 
-import dev.extframework.core.entrypoint.Entrypoint
+import com.kaolinmc.core.entrypoint.Entrypoint
 
 class Reload : Entrypoint() {
     override fun init() {

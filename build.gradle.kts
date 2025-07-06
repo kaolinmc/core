@@ -1,10 +1,10 @@
-import dev.extframework.gradle.common.*
+import com.kaolinmc.gradle.common.*
 
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("dev.extframework.common") version "1.1.2"
-    id("dev.extframework") version "1.4.2"
+    id("com.kaolinmc.common") version "0.1"
+    id("kaolin.kiln") version "0.1"
 }
 
 tasks.wrapper {
@@ -55,13 +55,13 @@ val publishAllLocally by tasks.registering {
 
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "dev.extframework.common")
+    apply(plugin = "com.kaolinmc.common")
 
-    group = "dev.extframework.core"
+    group = "com.kaolinmc.core"
 
     repositories {
         mavenCentral()
-        extFramework()
+        kaolin()
     }
 
     kotlin {

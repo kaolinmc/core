@@ -1,9 +1,9 @@
-import dev.extframework.gradle.common.boot
-import dev.extframework.gradle.common.extLoader
-import dev.extframework.gradle.common.objectContainer
-import dev.extframework.gradle.common.toolingApi
+import com.kaolinmc.gradle.common.boot
+import com.kaolinmc.gradle.common.extLoader
+import com.kaolinmc.gradle.common.objectContainer
+import com.kaolinmc.gradle.common.toolingApi
 
-group = "dev.extframework"
+group = "com.kaolinmc"
 version = "1.0-SNAPSHOT"
 
 repositories {

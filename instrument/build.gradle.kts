@@ -1,14 +1,9 @@
-import dev.extframework.gradle.common.archives
-import dev.extframework.gradle.common.artifactResolver
-import dev.extframework.gradle.common.boot
-import dev.extframework.gradle.common.commonUtil
-import dev.extframework.gradle.common.objectContainer
-import dev.extframework.gradle.common.toolingApi
-import dev.extframework.gradle.publish.ExtensionPublication
+import com.kaolinmc.gradle.common.*
+import com.kaolinmc.kiln.publish.*
 import kotlin.jvm.java
 
 plugins {
-    id("dev.extframework")
+    id("kaolin.kiln")
 }
 
 version = "1.0.5-BETA"
@@ -23,7 +18,7 @@ extension {
     }
     partitions {
         tweaker {
-            tweakerClass = "dev.extframework.core.instrument.InstrumentTweaker"
+            tweakerClass = "com.kaolinmc.core.instrument.InstrumentTweaker"
             dependencies {
                 implementation(project(":app:app-api"))
 
@@ -63,7 +58,7 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("https://repo.extframework.dev")
+            url = uri("https://repo.kaolinmc.com")
             credentials {
                 password = properties["creds.ext.key"] as? String
             }

@@ -1,4 +1,4 @@
-import dev.extframework.gradle.common.*
+import com.kaolinmc.gradle.common.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -8,22 +8,22 @@ plugins {
     java
     application
     id("com.gradleup.shadow") version "9.0.0-beta11"
-    id("dev.extframework.common")
+    id("com.kaolinmc.common")
     id("io.ktor.plugin") version "3.2.0"
     id("me.champeau.mrjar") version "0.1.1"
 }
 
-group = "dev.extframework"
+group = "com.kaolinmc"
 version = "1.0.1-BETA"
 
 repositories {
     mavenLocal()
     mavenCentral()
-    extFramework()
+    kaolin()
 }
 
 application {
-    mainClass = "dev.extframework.dev.client.Main"
+    mainClass = "com.kaolinmc.dev.client.Main"
 }
 
 kotlin {
@@ -50,15 +50,15 @@ dependencies {
     implementation(artifactResolverMaven())
     implementation(commonUtil())
     implementation(project(":app:app-api"))
-    implementation(project(":minecraft:minecraft-api"))// "dev.extframework.core:minecraft-api:1.0-BETA")
+    implementation(project(":minecraft:minecraft-api"))// "com.kaolinmc.core:minecraft-api:1.0-BETA")
     implementation(resourceApi())
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
     implementation(project("client-api"))
     implementation("io.ktor:ktor-server-core:3.2.0")
     implementation("io.ktor:ktor-server-netty:3.2.0")
 
-    "java11Implementation"("dev.extframework:boot:${rootProject.extensions.getByType<DependencyManagement>()["boot"]["version"]}:jdk11")
-    "java11Implementation"("dev.extframework:archives:${rootProject.extensions.getByType<DependencyManagement>()["archives"]["version"]}:jdk11")
+    "java11Implementation"("com.kaolinmc:boot:${rootProject.extensions.getByType<DependencyManagement>()["boot"]["version"]}:jdk11")
+    "java11Implementation"("com.kaolinmc:archives:${rootProject.extensions.getByType<DependencyManagement>()["archives"]["version"]}:jdk11")
 
     "java11Implementation"(boot())
     "java11Implementation"(objectContainer())
@@ -173,7 +173,7 @@ common {
             artifactId = "client"
         }
         repositories {
-            extFramework(credentials = propertyCredentialProvider, type = RepositoryType.RELEASES)
+            kaolin(credentials = propertyCredentialProvider, type = RepositoryType.RELEASES)
         }
     }
 }

@@ -1,12 +1,12 @@
-import dev.extframework.gradle.common.*
-import dev.extframework.gradle.publish.ExtensionPublication
+import com.kaolinmc.gradle.common.*
+import com.kaolinmc.kiln.publish.*
 import kotlin.jvm.java
 
 plugins {
-    id("dev.extframework")
+    id("kaolin.kiln")
 }
 
-group = "dev.extframework.core"
+group = "com.kaolinmc.core"
 version = "1.0.7-BETA"
 
 repositories {
@@ -25,12 +25,12 @@ extension {
     metadata {
         name = "Minecraft core"
         app = "minecraft"
-        developers = listOf("extframework")
-        description = "Adds Minecraft support to the extframework ecosystem"
+        developers = listOf("kaolin")
+        description = "Adds Minecraft support to the Kaolin ecosystem"
     }
     partitions {
         tweaker {
-            tweakerClass = "dev.extframework.core.minecraft.MinecraftTweaker"
+            tweakerClass = "com.kaolinmc.core.minecraft.MinecraftTweaker"
             dependencies {
                 implementation(project("minecraft-api"))
                 implementation(project("client:client-api"))
@@ -52,7 +52,7 @@ extension {
         }
 
         gradle {
-            entrypointClass = "dev.extframework.minecraft.MinecraftGradleEntrypoint"
+            entrypointClass = "com.kaolinmc.minecraft.MinecraftGradleEntrypoint"
             dependencies {
                 implementation(project("client:client-api"))
                 implementation(project("minecraft-api"))
@@ -100,7 +100,7 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("https://repo.extframework.dev")
+            url = uri("https://repo.kaolinmc.com")
             credentials {
                 password = properties["creds.ext.key"] as? String
             }

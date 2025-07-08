@@ -1,2 +1,2 @@
 [parents]
-minecraft = { group = "com.kaolinmc.core", version = "1.0.7-BETA", use = "local" }
+minecraft = { group = "com.kaolinmc.core", version = "1.0.8-BETA", use = "local" }

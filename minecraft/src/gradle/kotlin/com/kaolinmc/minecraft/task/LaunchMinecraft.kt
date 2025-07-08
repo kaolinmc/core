@@ -157,7 +157,12 @@ public abstract class LaunchMinecraft : JavaExec() {
             args
         )
 
-        args(mapper.writeValueAsString(context))
+        val contextPath = extension.worker.dataDir resolve "launch" resolve extension.project.path.replace(":", "_") resolve "context.json"
+
+        contextPath.make()
+        contextPath.toFile().writeText(mapper.writeValueAsString(context))
+
+        args(contextPath.toString())
 
         super.exec()
     }

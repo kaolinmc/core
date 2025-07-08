@@ -26,6 +26,7 @@ import com.kaolinmc.tooling.api.extension.artifact.ExtensionDescriptor
 import com.kaolinmc.tooling.api.extension.artifact.ExtensionRepositorySettings
 import com.kaolinmc.tooling.api.extension.partition.artifact.PartitionDescriptor
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -34,7 +35,7 @@ import kotlin.io.path.Path
 public fun main(args: Array<String>) {
     val context = args.getOrNull(0) ?: throw Exception("Invalid arguments. First arg must be a path.")
 
-    val launchContext = basicObjectMapper.readValue<LaunchContext>(context)
+    val launchContext = basicObjectMapper.readValue<LaunchContext>(File(context))
 
     val archiveGraph = setupArchiveGraph(getHomedir() resolve "archives")
     addPackagedDependencies(archiveGraph, parsePackagedDependencies())
@@ -195,17 +196,17 @@ internal open class ClientExtensionResolver(
 
         override val accessBridge: ExtensionResolver.AccessBridge = object : ExtensionResolver.AccessBridge {
             override fun classLoaderFor(descriptor: ExtensionDescriptor): ExtensionClassLoader {
-                return (extensionClassloaders[descriptor.toIdentifier()]) ?: reference.accessBridge.classLoaderFor(
+                return (extensionClassloaders[descriptor]) ?: reference.accessBridge.classLoaderFor(
                     descriptor
                 )
             }
 
             override fun ermFor(descriptor: ExtensionDescriptor): ExtensionRuntimeModel {
-                return extensionMetadata[descriptor.toIdentifier()]?.erm ?: reference.accessBridge.ermFor(descriptor)
+                return extensionMetadata[descriptor]?.erm ?: reference.accessBridge.ermFor(descriptor)
             }
 
             override fun repositoryFor(descriptor: ExtensionDescriptor): ExtensionRepositorySettings {
-                return extensionMetadata[descriptor.toIdentifier()]?.repository ?: reference.accessBridge.repositoryFor(
+                return extensionMetadata[descriptor]?.repository ?: reference.accessBridge.repositoryFor(
                     descriptor
                 )
             }

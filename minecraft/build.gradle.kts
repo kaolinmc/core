@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.kaolinmc.core"
-version = "1.0.7-BETA"
+version = "1.0.8-BETA"
 
 repositories {
     mavenLocal()
@@ -100,10 +100,16 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("https://repo.kaolinmc.com")
+            url = uri("http://127.0.0.1:6969")
             credentials {
-                password = properties["creds.ext.key"] as? String
+                password = "a"
             }
         }
+//        maven {
+//            url = uri("https://repo.kaolinmc.com")
+//            credentials {
+//                password = properties["creds.ext.key"] as? String
+//            }
+//        }
     }
 }

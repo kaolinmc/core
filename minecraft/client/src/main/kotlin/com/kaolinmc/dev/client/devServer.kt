@@ -2,18 +2,17 @@ package com.kaolinmc.dev.client
 
 import com.kaolinmc.minecraft.client.api.MinecraftExtensionInitializer
 import io.ktor.http.*
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
 internal fun devServer(loader: ClientExtensionLoader) {
-    embeddedServer(Netty, port = 7654) {
+    embeddedServer(CIO, port = 7654) {
         routing {
             get("/") {
-                call.respondText("Hey, you found the Development Server for the Extframework Gradle plugin. Type `./gradlew reload` or `gradle reload` in your terminal to reload your extension.")
+                call.respondText("Hey, you found the Development Server for the Kaolin Gradle plugin. Type `./gradlew reload` or `gradle reload` in your terminal to reload your extension.")
             }
             post("/reload") {
                 try {

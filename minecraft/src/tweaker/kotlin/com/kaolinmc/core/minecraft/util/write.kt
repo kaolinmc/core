@@ -14,7 +14,6 @@ import kotlin.sequences.forEach
 
 public fun ArchiveReference.write(path: Path) {
     val temp = Files.createTempFile(path.name, "jar")
-
     JarOutputStream(FileOutputStream(temp.toFile())).use { target ->
         reader.writeAll(target)
     }

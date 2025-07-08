@@ -3,13 +3,15 @@ import com.kaolinmc.gradle.common.*
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("com.kaolinmc.common") version "0.1"
-    id("kaolin.kiln") version "0.1"
+    id("com.kaolinmc.common") version "0.1.3"
+    id("kaolin.kiln") version "0.1.1"
 }
 
 tasks.wrapper {
     gradleVersion = "8.14.2"
 }
+
+logger.lifecycle(gradle.gradleHomeDir.toString())
 
 val publishAll by tasks.registering {
     listOf(

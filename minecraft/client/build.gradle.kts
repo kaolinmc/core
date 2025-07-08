@@ -55,7 +55,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
     implementation(project("client-api"))
     implementation("io.ktor:ktor-server-core:3.2.0")
-    implementation("io.ktor:ktor-server-netty:3.2.0")
+    implementation("io.ktor:ktor-server-cio:3.2.0")
 
     "java11Implementation"("com.kaolinmc:boot:${rootProject.extensions.getByType<DependencyManagement>()["boot"]["version"]}:jdk11")
     "java11Implementation"("com.kaolinmc:archives:${rootProject.extensions.getByType<DependencyManagement>()["archives"]["version"]}:jdk11")

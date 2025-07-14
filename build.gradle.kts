@@ -3,8 +3,8 @@ import com.kaolinmc.gradle.common.*
 
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("com.kaolinmc.common") version "0.1.3"
-    id("kaolin.kiln") version "0.1.1"
+    id("com.kaolinmc.common") version "0.1.5"
+    id("kaolin.kiln") version "0.1.5"
 }
 
 tasks.wrapper {

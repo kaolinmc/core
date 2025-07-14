@@ -100,16 +100,10 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("http://127.0.0.1:6969")
+            url = uri("https://repo.kaolinmc.com")
             credentials {
-                password = "a"
+                password = properties["creds.ext.key"] as? String
             }
         }
-//        maven {
-//            url = uri("https://repo.kaolinmc.com")
-//            credentials {
-//                password = properties["creds.ext.key"] as? String
-//            }
-//        }
     }
 }
